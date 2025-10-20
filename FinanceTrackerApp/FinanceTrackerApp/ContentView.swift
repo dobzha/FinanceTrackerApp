@@ -269,42 +269,145 @@ struct DashboardView: View {
 }
 
 struct AccountsView: View {
+    struct Account: Identifiable {
+        let id = UUID()
+        let name: String
+        let amount: Double
+        let currency: Currency
+    }
+    
+    enum Currency: String, CaseIterable, Identifiable {
+        case usd = "USD"
+        case eur = "EUR"
+        case uah = "UAH"
+        
+        var id: String { rawValue }
+        
+        var symbol: String {
+            switch self {
+            case .usd: return "$"
+            case .eur: return "€"
+            case .uah: return "₴"
+            }
+        }
+    }
+    
+    @State private var accounts: [Account] = []
+    @State private var showAddAccountSheet = false
+    @State private var newAccountName: String = ""
+    @State private var newAccountAmount: String = ""
+    @State private var newAccountCurrency: Currency = .usd
+    
+    private var amountFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 0
+        return formatter
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
-                VStack(spacing: 20) {
-                    Image(systemName: "wallet.pass")
-                        .font(.system(size: 60))
-                        .foregroundColor(.secondary)
-                    
-                    Text("No Accounts Yet")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
-                    Text("Start by adding your financial accounts.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                    
-                    Button("Add Account") {
-                        // TODO: Show add account form
+                if accounts.isEmpty {
+                    VStack(spacing: 20) {
+                        Image(systemName: "wallet.pass")
+                            .font(.system(size: 60))
+                            .foregroundColor(.secondary)
+                        
+                        Text("No Accounts Yet")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        
+                        Text("Start by adding your financial accounts.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        Button("Add Account") {
+                            showAddAccountSheet = true
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(accounts) { account in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(account.name)
+                                        .font(.headline)
+                                    Text(account.currency.rawValue)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text("\(account.currency.symbol)\(String(format: "%.2f", account.amount))")
+                                    .font(.subheadline)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .navigationTitle("Accounts")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        // TODO: Show add account form
+                        showAddAccountSheet = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
                     }
                 }
             }
+            .sheet(isPresented: $showAddAccountSheet) {
+                NavigationView {
+                    Form {
+                        Section(header: Text("Account Details")) {
+                            TextField("Account Name", text: $newAccountName)
+                            TextField("Amount", text: $newAccountAmount)
+                                .keyboardType(.decimalPad)
+                            Picker("Currency", selection: $newAccountCurrency) {
+                                ForEach(Currency.allCases) { currency in
+                                    Text(currency.rawValue).tag(currency)
+                                }
+                            }
+                        }
+                    }
+                    .navigationTitle("Add Account")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                resetNewAccountFields()
+                                showAddAccountSheet = false
+                            }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Save") {
+                                saveNewAccount()
+                            }
+                            .disabled(newAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || Double(newAccountAmount.replacingOccurrences(of: ",", with: ".")) == nil)
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    private func resetNewAccountFields() {
+        newAccountName = ""
+        newAccountAmount = ""
+        newAccountCurrency = .usd
+    }
+    
+    private func saveNewAccount() {
+        let normalizedAmountString = newAccountAmount.replacingOccurrences(of: ",", with: ".")
+        guard let amount = Double(normalizedAmountString) else { return }
+        let account = Account(name: newAccountName.trimmingCharacters(in: .whitespacesAndNewlines), amount: amount, currency: newAccountCurrency)
+        accounts.append(account)
+        resetNewAccountFields()
+        showAddAccountSheet = false
     }
 }
 
