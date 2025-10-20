@@ -144,7 +144,7 @@ struct DashboardView: View {
                         }
                         
                         HStack {
-                            Text("$15,750.50")
+                            Text("$0.00")
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
                                 .foregroundColor(.primary)
                             
@@ -191,7 +191,7 @@ struct DashboardView: View {
                                 
                                 Spacer()
                                 
-                                Text("$5,000.00")
+                                Text("$0.00")
                                     .font(.subheadline)
                                     .foregroundColor(.green)
                             }
@@ -208,7 +208,7 @@ struct DashboardView: View {
                                 
                                 Spacer()
                                 
-                                Text("$2,500.00")
+                                Text("$0.00")
                                     .font(.subheadline)
                                     .foregroundColor(.red)
                             }
@@ -228,7 +228,7 @@ struct DashboardView: View {
                                 
                                 Spacer()
                                 
-                                Text("$2,500.00")
+                                Text("$0.00")
                                     .font(.subheadline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.green)
