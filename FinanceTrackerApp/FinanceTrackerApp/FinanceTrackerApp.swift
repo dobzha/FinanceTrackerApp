@@ -4,7 +4,8 @@ import SwiftUI
 struct FinanceTrackerApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootEntryView()
+                .onAppear { OfflineQueueService.shared.startAutoSyncObservers() }.environmentObject(AuthViewModel()).environmentObject(ToastManager())
         }
     }
 }
