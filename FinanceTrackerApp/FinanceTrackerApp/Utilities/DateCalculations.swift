@@ -41,9 +41,29 @@ struct DateCalculations {
 
         return handleMonthEndEdgeCase(day: repetitionDay, month: repetitionMonth, year: currentYear + 1, calendar: calendar)
     }
+    
+    static func getNextWeeklyPayment(repetitionDate: Date, currentDate: Date = Date()) -> Date {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: repetitionDate)
+        
+        // Find the next occurrence of this weekday
+        var nextDate = currentDate
+        var attempts = 0
+        while attempts < 8 { // Prevent infinite loop
+            let currentWeekday = calendar.component(.weekday, from: nextDate)
+            if currentWeekday == weekday && nextDate > currentDate {
+                return nextDate
+            }
+            nextDate = calendar.date(byAdding: .day, value: 1, to: nextDate) ?? nextDate
+            attempts += 1
+        }
+        
+        return nextDate
+    }
 
     static func getNextRevenueDate(repetitionDate: Date, period: String, currentDate: Date = Date()) -> Date? {
         switch period {
+        case "weekly": return getNextWeeklyPayment(repetitionDate: repetitionDate, currentDate: currentDate)
         case "monthly": return getNextMonthlyPayment(repetitionDate: repetitionDate, currentDate: currentDate)
         case "yearly": return getNextYearlyPayment(repetitionDate: repetitionDate, currentDate: currentDate)
         case "once": return repetitionDate > currentDate ? repetitionDate : nil
@@ -73,7 +93,10 @@ struct DateCalculations {
 
         while currentDate <= endDate {
             occurrences.append(currentDate)
-            if period == "monthly" {
+            if period == "weekly" {
+                guard let next = calendar.date(byAdding: .weekOfYear, value: 1, to: currentDate) else { break }
+                currentDate = next
+            } else if period == "monthly" {
                 guard let next = calendar.date(byAdding: .month, value: 1, to: currentDate) else { break }
                 currentDate = next
             } else if period == "yearly" {

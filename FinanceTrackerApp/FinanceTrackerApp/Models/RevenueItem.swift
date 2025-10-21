@@ -2,6 +2,7 @@
 import Foundation
 
 enum RevenuePeriod: String, Codable, CaseIterable {
+    case weekly
     case monthly
     case yearly
     case once

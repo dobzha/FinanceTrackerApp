@@ -53,6 +53,19 @@ struct FinancialCalculations {
         }
         return total
     }
+    
+    static func calculateCurrentAccountBalance(accounts: [FinanceItem]) async -> Double {
+        var total = 0.0
+        for account in accounts {
+            if account.currency == "USD" {
+                total += account.amount
+            } else {
+                let (convertedUSD, _) = await CurrencyService.shared.convertToUSDWithFallback(amount: account.amount, fromCurrency: account.currency)
+                total += convertedUSD
+            }
+        }
+        return total
+    }
 
     static func generate12MonthProjections(accounts: [FinanceItem], subscriptions: [SubscriptionItem], revenues: [RevenueItem]) async -> [(month: Date, balance: Double)] {
         let calendar = Calendar.current
@@ -73,7 +86,14 @@ struct FinancialCalculations {
         var total = 0.0
         for s in subs {
             let (usd, _) = await CurrencyService.shared.convertToUSDWithFallback(amount: s.amount, fromCurrency: s.currency)
-            total += (s.period == .yearly) ? usd / 12.0 : usd
+            switch s.period {
+            case .weekly:
+                total += usd * 4.33 // Approximate weeks per month
+            case .monthly:
+                total += usd
+            case .yearly:
+                total += usd / 12.0
+            }
         }
         return total
     }
@@ -82,7 +102,16 @@ struct FinancialCalculations {
         var total = 0.0
         for r in revs where r.period != .once {
             let (usd, _) = await CurrencyService.shared.convertToUSDWithFallback(amount: r.amount, fromCurrency: r.currency)
-            total += (r.period == .yearly) ? usd / 12.0 : usd
+            switch r.period {
+            case .weekly:
+                total += usd * 4.33 // Approximate weeks per month
+            case .monthly:
+                total += usd
+            case .yearly:
+                total += usd / 12.0
+            case .once:
+                break // Skip once payments
+            }
         }
         return total
     }

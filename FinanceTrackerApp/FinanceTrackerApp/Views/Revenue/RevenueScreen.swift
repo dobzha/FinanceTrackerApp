@@ -6,6 +6,7 @@ struct RevenueScreen: View {
     @StateObject private var viewModel = RevenueViewModel()
     @State private var showForm = false
     @State private var editing: RevenueItem? = nil
+    @State private var monthlyRevenueUSD: Double = 0.0
 
     var body: some View {
         NavigationView {
@@ -24,27 +25,70 @@ struct RevenueScreen: View {
                         ForEach(viewModel.revenues, id: \.id) { r in
                             RevenueRowView(item: r, accountName: viewModel.accounts.first(where: { $0.id == r.accountId })?.name)
                                 .swipeActions(edge: .leading) { Button { editing = r; showForm = true } label: { Label("Edit", systemImage: "pencil") }.tint(.blue) }
-                                .swipeActions(edge: .trailing) { Button(role: .destructive) { Task { if await viewModel.delete(id: r.id) { toast.show("Revenue deleted") } } } label: { Label("Delete", systemImage: "trash") } }
+                                .swipeActions(edge: .trailing) { Button(role: .destructive) { Task { if await viewModel.delete(id: r.id) { toast.show("Revenue deleted"); await calculateMonthlyRevenue() } } } label: { Label("Delete", systemImage: "trash") } }
                         }
                     }
-                    .refreshable { await viewModel.load() }
+                    .refreshable { 
+                        await viewModel.load()
+                        await calculateMonthlyRevenue()
+                    }
                 }
             }
             .navigationTitle("Revenue")
             .toolbar { ToolbarItem(placement: .navigationBarTrailing) { Button { editing = nil; showForm = true } label: { Image(systemName: "plus") } } }
+            .safeAreaInset(edge: .top) {
+                if !viewModel.revenues.isEmpty {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Monthly Revenue")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(CurrencyService.shared.formatAmountInUSD(monthlyRevenueUSD))
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.green)
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemBackground))
+                        
+                        Divider()
+                    }
+                }
+            }
         }
-        .task { await viewModel.load() }
+        .task { 
+            await viewModel.load()
+            await calculateMonthlyRevenue()
+        }
         .sheet(isPresented: $showForm) {
             NavigationStack {
                 RevenueFormView(accounts: viewModel.accounts, mode: editing == nil ? .create : .edit, existing: editing) { name, amount, currency, period, date, accountId in
                     if var e = editing {
                         e.name = name; e.amount = amount; e.currency = currency; e.period = period; e.repetitionDate = date; e.accountId = accountId
-                        let ok = await viewModel.update(e); if ok { toast.show("Revenue updated") }; return ok
+                        let ok = await viewModel.update(e)
+                        if ok { 
+                            toast.show("Revenue updated")
+                            await calculateMonthlyRevenue()
+                        }
+                        return ok
                     } else {
-                        let ok = await viewModel.create(name: name, amount: amount, currency: currency, period: period, repetitionDate: date, accountId: accountId); if ok { toast.show("Revenue created") }; return ok
+                        let ok = await viewModel.create(name: name, amount: amount, currency: currency, period: period, repetitionDate: date, accountId: accountId)
+                        if ok { 
+                            toast.show("Revenue created")
+                            await calculateMonthlyRevenue()
+                        }
+                        return ok
                     }
                 }
             }
+        }
+    }
+    
+    private func calculateMonthlyRevenue() async {
+        let total = await FinancialCalculations.calculateMonthlyRevenue(viewModel.revenues)
+        await MainActor.run {
+            monthlyRevenueUSD = total
         }
     }
 }

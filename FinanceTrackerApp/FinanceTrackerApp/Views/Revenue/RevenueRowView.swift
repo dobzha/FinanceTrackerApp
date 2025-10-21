@@ -35,6 +35,8 @@ struct RevenueRowView: View {
                 case .monthly: next = DateCalculations.getNextMonthlyPayment(repetitionDate: rep)
                 case .yearly: next = DateCalculations.getNextYearlyPayment(repetitionDate: rep)
                 case .once: next = DateCalculations.getNextRevenueDate(repetitionDate: rep, period: "once")
+                case .weekly:
+                    next = DateCalculations.getNextWeeklyPayment(repetitionDate: rep)
                 }
                 if let n = next { nextDateText = DateCalculations.formatPaymentDate(n) } else { nextDateText = "" }
             }

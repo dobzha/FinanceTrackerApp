@@ -6,11 +6,7 @@ struct RootEntryView: View {
 
     var body: some View {
         Group {
-            if auth.isAuthenticated {
-                MainAppView()
-            } else {
-                SignInView()
-            }
+            MainAppView()
         }
         .overlay(alignment: .top) {
             if let msg = toast.message { ToastView(text: msg) }

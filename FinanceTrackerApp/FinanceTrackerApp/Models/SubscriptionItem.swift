@@ -2,6 +2,7 @@
 import Foundation
 
 enum SubscriptionPeriod: String, Codable, CaseIterable {
+    case weekly
     case monthly
     case yearly
 }

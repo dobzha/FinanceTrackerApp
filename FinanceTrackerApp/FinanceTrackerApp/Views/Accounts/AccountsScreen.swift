@@ -3,6 +3,7 @@ import SwiftUI
 
 struct AccountsScreen: View {
     @EnvironmentObject var toast: ToastManager
+    @EnvironmentObject var auth: AuthViewModel
     @StateObject private var viewModel = AccountsViewModel()
 
     @State private var showForm = false
@@ -10,6 +11,7 @@ struct AccountsScreen: View {
     @State private var showDeleteAlert = false
     @State private var deleteTarget: FinanceItem? = nil
     @State private var linkedText: String = ""
+    @State private var totalBalanceUSD: Double = 0.0
 
     var body: some View {
         NavigationView {
@@ -36,7 +38,10 @@ struct AccountsScreen: View {
                                 }
                         }
                     }
-                    .refreshable { await viewModel.loadAccounts() }
+                    .refreshable { 
+                        await viewModel.loadAccounts()
+                        await calculateTotalBalance()
+                    }
                 }
             }
             .navigationTitle("Accounts")
@@ -45,22 +50,57 @@ struct AccountsScreen: View {
                     Button { editingItem = nil; showForm = true } label: { Image(systemName: "plus") }
                 }
             }
+            .safeAreaInset(edge: .top) {
+                if !viewModel.accounts.isEmpty {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Total Balance")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(CurrencyService.shared.formatAmountInUSD(totalBalanceUSD))
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemBackground))
+                        
+                        Divider()
+                    }
+                }
+            }
         }
-        .task { await viewModel.loadAccounts() }
+        .task { 
+            await viewModel.loadAccounts()
+            await calculateTotalBalance()
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
         .sheet(isPresented: $showForm) {
             NavigationStack {
                 AccountFormView(
                     mode: editingItem == nil ? .create : .edit,
                     existing: editingItem,
                     onSave: { name, amount, currency in
+                        let ok: Bool
                         if var editing = editingItem {
                             editing.name = name
                             editing.amount = amount
                             editing.currency = currency
-                            let ok = await viewModel.updateAccount(editing); if ok { toast.show("Account updated") }; return ok
+                            ok = await viewModel.updateAccount(editing)
+                            if ok { toast.show("Account updated") }
                         } else {
-                            let ok = await viewModel.createAccount(name: name, amount: amount, currency: currency); if ok { toast.show("Account created") }; return ok
+                            ok = await viewModel.createAccount(name: name, amount: amount, currency: currency)
+                            if ok { toast.show("Account created") }
                         }
+                        if ok {
+                            await calculateTotalBalance()
+                        }
+                        return ok
                     }
                 )
             }
@@ -86,7 +126,17 @@ struct AccountsScreen: View {
 
     private func deleteConfirmed() async {
         guard let target = deleteTarget else { return }
-        if await viewModel.deleteAccount(target) { toast.show("Account deleted") }
+        if await viewModel.deleteAccount(target) { 
+            toast.show("Account deleted")
+            await calculateTotalBalance()
+        }
+    }
+    
+    private func calculateTotalBalance() async {
+        let total = await FinancialCalculations.calculateCurrentAccountBalance(accounts: viewModel.accounts)
+        await MainActor.run {
+            totalBalanceUSD = total
+        }
     }
 }
 

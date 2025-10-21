@@ -91,30 +91,35 @@ struct MainAppView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             DashboardScreen()
+                .environmentObject(AuthViewModel.shared)
                 .tabItem {
                     Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(0)
             
             AccountsScreen()
+                .environmentObject(AuthViewModel.shared)
                 .tabItem {
                     Label("Accounts", systemImage: "wallet.pass")
                 }
                 .tag(1)
             
             SubscriptionsScreen()
+                .environmentObject(AuthViewModel.shared)
                 .tabItem {
                     Label("Subscriptions", systemImage: "repeat")
                 }
                 .tag(2)
             
             RevenueScreen()
+                .environmentObject(AuthViewModel.shared)
                 .tabItem {
                     Label("Revenue", systemImage: "dollarsign.circle")
                 }
                 .tag(3)
             
             SettingsView()
+                .environmentObject(AuthViewModel.shared)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }

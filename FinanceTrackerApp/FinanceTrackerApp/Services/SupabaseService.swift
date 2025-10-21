@@ -16,7 +16,7 @@ final class SupabaseService {
 
     // MARK: - Auth
 
-    func signInWithGoogle(redirectTo: URL? = nil) async throws {
+    func signInWithGoogle(redirectTo: URL? = URL(string: Config.oauthRedirectURL)) async throws {
         _ = try await client.auth.signInWithOAuth(provider: .google, redirectTo: redirectTo)
     }
 
@@ -24,29 +24,24 @@ final class SupabaseService {
         try await client.auth.signOut()
     }
 
-    func getCurrentUser() async throws -> User? {
-        return try await client.auth.session.user
-    }
-
-    func observeAuthState(_ handler: @escaping (AuthChangeEvent, Session?) -> Void) -> UUID {
-        client.auth.addAuthStateChangeListener { event, session in
-            handler(event, session)
+    func getCurrentUser() async -> User? {
+        do {
+            let session = try await client.auth.session
+            return session.user
+        } catch {
+            return nil
         }
-    }
-
-    func removeAuthObserver(_ token: UUID) {
-        client.auth.removeAuthStateChangeListener(token)
     }
 
     // MARK: - Finance Items (Accounts)
 
     func fetchAccounts() async throws -> [FinanceItem] {
-        try await client.database.from("finance_items").select().order(column: "created_at", ascending: true).execute().value
+        try await client.from("finance_items").select().order("created_at", ascending: true).execute().value
     }
 
     func createAccount(_ item: FinanceItem) async throws {
         if isOnline {
-            _ = try await client.database.from("finance_items").insert(values: item).execute()
+            _ = try await client.from("finance_items").insert(item).execute()
         } else {
             OfflineQueueService.shared.enqueueCreate(item)
         }
@@ -54,7 +49,7 @@ final class SupabaseService {
 
     func updateAccount(_ item: FinanceItem) async throws {
         if isOnline {
-            _ = try await client.database.from("finance_items").update(values: item).eq(column: "id", value: item.id.uuidString).execute()
+            _ = try await client.from("finance_items").update(item).eq("id", value: item.id.uuidString).execute()
         } else {
             OfflineQueueService.shared.enqueueUpdate(item)
         }
@@ -62,7 +57,7 @@ final class SupabaseService {
 
     func deleteAccount(id: UUID) async throws {
         if isOnline {
-            _ = try await client.database.from("finance_items").delete().eq(column: "id", value: id.uuidString).execute()
+            _ = try await client.from("finance_items").delete().eq("id", value: id.uuidString).execute()
         } else {
             OfflineQueueService.shared.enqueueDeleteFinance(id: id)
         }
@@ -71,12 +66,12 @@ final class SupabaseService {
     // MARK: - Subscription Items
 
     func fetchSubscriptions() async throws -> [SubscriptionItem] {
-        try await client.database.from("subscription_items").select().order(column: "created_at", ascending: true).execute().value
+        try await client.from("subscription_items").select().order("created_at", ascending: true).execute().value
     }
 
     func createSubscription(_ item: SubscriptionItem) async throws {
         if isOnline {
-            _ = try await client.database.from("subscription_items").insert(values: item).execute()
+            _ = try await client.from("subscription_items").insert(item).execute()
         } else {
             OfflineQueueService.shared.enqueueCreate(item)
         }
@@ -84,7 +79,7 @@ final class SupabaseService {
 
     func updateSubscription(_ item: SubscriptionItem) async throws {
         if isOnline {
-            _ = try await client.database.from("subscription_items").update(values: item).eq(column: "id", value: item.id.uuidString).execute()
+            _ = try await client.from("subscription_items").update(item).eq("id", value: item.id.uuidString).execute()
         } else {
             OfflineQueueService.shared.enqueueUpdate(item)
         }
@@ -92,7 +87,7 @@ final class SupabaseService {
 
     func deleteSubscription(id: UUID) async throws {
         if isOnline {
-            _ = try await client.database.from("subscription_items").delete().eq(column: "id", value: id.uuidString).execute()
+            _ = try await client.from("subscription_items").delete().eq("id", value: id.uuidString).execute()
         } else {
             OfflineQueueService.shared.enqueueDeleteSubscription(id: id)
         }
@@ -101,12 +96,12 @@ final class SupabaseService {
     // MARK: - Revenue Items
 
     func fetchRevenues() async throws -> [RevenueItem] {
-        try await client.database.from("revenue_items").select().order(column: "created_at", ascending: true).execute().value
+        try await client.from("revenue_items").select().order("created_at", ascending: true).execute().value
     }
 
     func createRevenue(_ item: RevenueItem) async throws {
         if isOnline {
-            _ = try await client.database.from("revenue_items").insert(values: item).execute()
+            _ = try await client.from("revenue_items").insert(item).execute()
         } else {
             OfflineQueueService.shared.enqueueCreate(item)
         }
@@ -114,7 +109,7 @@ final class SupabaseService {
 
     func updateRevenue(_ item: RevenueItem) async throws {
         if isOnline {
-            _ = try await client.database.from("revenue_items").update(values: item).eq(column: "id", value: item.id.uuidString).execute()
+            _ = try await client.from("revenue_items").update(item).eq("id", value: item.id.uuidString).execute()
         } else {
             OfflineQueueService.shared.enqueueUpdate(item)
         }
@@ -122,9 +117,17 @@ final class SupabaseService {
 
     func deleteRevenue(id: UUID) async throws {
         if isOnline {
-            _ = try await client.database.from("revenue_items").delete().eq(column: "id", value: id.uuidString).execute()
+            _ = try await client.from("revenue_items").delete().eq("id", value: id.uuidString).execute()
         } else {
             OfflineQueueService.shared.enqueueDeleteRevenue(id: id)
+        }
+    }
+
+    func handleOpenURL(_ url: URL) async {
+        do {
+            _ = try await client.auth.session(from: url)
+        } catch {
+            // ignore; user can retry sign-in
         }
     }
 }

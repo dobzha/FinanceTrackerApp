@@ -8,3 +8,8 @@ enum Config {
     static let exchangeRateEdgeFunction = "https://dslaholfbjctbzkgprio.supabase.co/functions/v1/get-exchange-rates"
     static let exchangeRateCacheDuration: TimeInterval = 6 * 60 * 60
 }
+
+
+extension Config {
+    static let oauthRedirectURL = "financetracker://auth-callback"
+}

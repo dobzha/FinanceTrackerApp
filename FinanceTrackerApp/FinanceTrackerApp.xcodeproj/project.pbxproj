@@ -7,6 +7,41 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		500F08432EA63CB300316330 /* AccountFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F082B2EA63CB300316330 /* AccountFormView.swift */; };
+		500F08442EA63CB300316330 /* DashboardScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08322EA63CB300316330 /* DashboardScreen.swift */; };
+		500F08452EA63CB300316330 /* FallbackRates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08212EA63CB300316330 /* FallbackRates.swift */; };
+		500F08462EA63CB300316330 /* FinanceItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08182EA63CB300316330 /* FinanceItem.swift */; };
+		500F08472EA63CB300316330 /* NetworkStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08232EA63CB300316330 /* NetworkStatus.swift */; };
+		500F08482EA63CB300316330 /* OfflineQueueService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F081D2EA63CB300316330 /* OfflineQueueService.swift */; };
+		500F08492EA63CB300316330 /* RevenueFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08362EA63CB300316330 /* RevenueFormView.swift */; };
+		500F084A2EA63CB300316330 /* SubscriptionRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F083F2EA63CB300316330 /* SubscriptionRowView.swift */; };
+		500F084B2EA63CB300316330 /* RevenueRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08372EA63CB300316330 /* RevenueRowView.swift */; };
+		500F084C2EA63CB300316330 /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F083E2EA63CB300316330 /* SubscriptionFormView.swift */; };
+		500F084D2EA63CB300316330 /* RevenueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08282EA63CB300316330 /* RevenueViewModel.swift */; };
+		500F084E2EA63CB300316330 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08262EA63CB300316330 /* AuthViewModel.swift */; };
+		500F084F2EA63CB300316330 /* SubscriptionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F081A2EA63CB300316330 /* SubscriptionItem.swift */; };
+		500F08502EA63CB300316330 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F083B2EA63CB300316330 /* ToastManager.swift */; };
+		500F08512EA63CB300316330 /* AccountsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08252EA63CB300316330 /* AccountsViewModel.swift */; };
+		500F08522EA63CB300316330 /* AccountsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F082D2EA63CB300316330 /* AccountsScreen.swift */; };
+		500F08532EA63CB300316330 /* ProjectionChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08332EA63CB300316330 /* ProjectionChartView.swift */; };
+		500F08542EA63CB300316330 /* RevenueScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08382EA63CB300316330 /* RevenueScreen.swift */; };
+		500F08552EA63CB300316330 /* RevenueItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08192EA63CB300316330 /* RevenueItem.swift */; };
+		500F08562EA63CB300316330 /* DateCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08202EA63CB300316330 /* DateCalculations.swift */; };
+		500F08572EA63CB300316330 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08172EA63CB300316330 /* Config.swift */; };
+		500F08582EA63CB300316330 /* SubscriptionsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08402EA63CB300316330 /* SubscriptionsScreen.swift */; };
+		500F08592EA63CB300316330 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F081E2EA63CB300316330 /* SupabaseService.swift */; };
+		500F085A2EA63CB300316330 /* AccountRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F082C2EA63CB300316330 /* AccountRowView.swift */; };
+		500F085B2EA63CB300316330 /* BalanceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08312EA63CB300316330 /* BalanceCard.swift */; };
+		500F085C2EA63CB300316330 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08272EA63CB300316330 /* DashboardViewModel.swift */; };
+		500F085D2EA63CB300316330 /* QuickStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08342EA63CB300316330 /* QuickStatsView.swift */; };
+		500F085E2EA63CB300316330 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F082F2EA63CB300316330 /* SignInView.swift */; };
+		500F085F2EA63CB300316330 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F083C2EA63CB300316330 /* ToastView.swift */; };
+		500F08602EA63CB300316330 /* SubscriptionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08292EA63CB300316330 /* SubscriptionsViewModel.swift */; };
+		500F08612EA63CB300316330 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F083A2EA63CB300316330 /* MainTabView.swift */; };
+		500F08622EA63CB300316330 /* FinancialCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08222EA63CB300316330 /* FinancialCalculations.swift */; };
+		500F08632EA63CB300316330 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F081C2EA63CB300316330 /* CurrencyService.swift */; };
+		500F08642EA63CB300316330 /* LocalStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08652EA63CB300316330 /* LocalStorageService.swift */; };
+		500F08672EA63DE000316330 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 500F08662EA63DE000316330 /* Supabase */; };
 		AA0000000000000001 /* FinanceTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000002 /* FinanceTrackerApp.swift */; };
 		AA0000000000000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000004 /* ContentView.swift */; };
 		AA0000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000006 /* Assets.xcassets */; };
@@ -14,6 +49,41 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		500F08172EA63CB300316330 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		500F08182EA63CB300316330 /* FinanceItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceItem.swift; sourceTree = "<group>"; };
+		500F08192EA63CB300316330 /* RevenueItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueItem.swift; sourceTree = "<group>"; };
+		500F081A2EA63CB300316330 /* SubscriptionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionItem.swift; sourceTree = "<group>"; };
+		500F081C2EA63CB300316330 /* CurrencyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
+		500F081D2EA63CB300316330 /* OfflineQueueService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineQueueService.swift; sourceTree = "<group>"; };
+		500F081E2EA63CB300316330 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		500F08652EA63CB300316330 /* LocalStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorageService.swift; sourceTree = "<group>"; };
+		500F08202EA63CB300316330 /* DateCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateCalculations.swift; sourceTree = "<group>"; };
+		500F08212EA63CB300316330 /* FallbackRates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallbackRates.swift; sourceTree = "<group>"; };
+		500F08222EA63CB300316330 /* FinancialCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialCalculations.swift; sourceTree = "<group>"; };
+		500F08232EA63CB300316330 /* NetworkStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStatus.swift; sourceTree = "<group>"; };
+		500F08252EA63CB300316330 /* AccountsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsViewModel.swift; sourceTree = "<group>"; };
+		500F08262EA63CB300316330 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		500F08272EA63CB300316330 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		500F08282EA63CB300316330 /* RevenueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueViewModel.swift; sourceTree = "<group>"; };
+		500F08292EA63CB300316330 /* SubscriptionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionsViewModel.swift; sourceTree = "<group>"; };
+		500F082B2EA63CB300316330 /* AccountFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountFormView.swift; sourceTree = "<group>"; };
+		500F082C2EA63CB300316330 /* AccountRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountRowView.swift; sourceTree = "<group>"; };
+		500F082D2EA63CB300316330 /* AccountsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsScreen.swift; sourceTree = "<group>"; };
+		500F082F2EA63CB300316330 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		500F08312EA63CB300316330 /* BalanceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceCard.swift; sourceTree = "<group>"; };
+		500F08322EA63CB300316330 /* DashboardScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardScreen.swift; sourceTree = "<group>"; };
+		500F08332EA63CB300316330 /* ProjectionChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectionChartView.swift; sourceTree = "<group>"; };
+		500F08342EA63CB300316330 /* QuickStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickStatsView.swift; sourceTree = "<group>"; };
+		500F08362EA63CB300316330 /* RevenueFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueFormView.swift; sourceTree = "<group>"; };
+		500F08372EA63CB300316330 /* RevenueRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueRowView.swift; sourceTree = "<group>"; };
+		500F08382EA63CB300316330 /* RevenueScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueScreen.swift; sourceTree = "<group>"; };
+		500F083A2EA63CB300316330 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		500F083B2EA63CB300316330 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
+		500F083C2EA63CB300316330 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
+		500F083E2EA63CB300316330 /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
+		500F083F2EA63CB300316330 /* SubscriptionRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRowView.swift; sourceTree = "<group>"; };
+		500F08402EA63CB300316330 /* SubscriptionsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionsScreen.swift; sourceTree = "<group>"; };
+		500F08682EA642C700316330 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000 /* FinanceTrackerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinanceTrackerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000002 /* FinanceTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceTrackerApp.swift; sourceTree = "<group>"; };
 		AA0000000000000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -26,18 +96,161 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				500F08672EA63DE000316330 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		500F081B2EA63CB300316330 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				500F08182EA63CB300316330 /* FinanceItem.swift */,
+				500F08192EA63CB300316330 /* RevenueItem.swift */,
+				500F081A2EA63CB300316330 /* SubscriptionItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		500F081F2EA63CB300316330 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				500F081C2EA63CB300316330 /* CurrencyService.swift */,
+				500F081D2EA63CB300316330 /* OfflineQueueService.swift */,
+				500F081E2EA63CB300316330 /* SupabaseService.swift */,
+				500F08652EA63CB300316330 /* LocalStorageService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		500F08242EA63CB300316330 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				500F08202EA63CB300316330 /* DateCalculations.swift */,
+				500F08212EA63CB300316330 /* FallbackRates.swift */,
+				500F08222EA63CB300316330 /* FinancialCalculations.swift */,
+				500F08232EA63CB300316330 /* NetworkStatus.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		500F082A2EA63CB300316330 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				500F08252EA63CB300316330 /* AccountsViewModel.swift */,
+				500F08262EA63CB300316330 /* AuthViewModel.swift */,
+				500F08272EA63CB300316330 /* DashboardViewModel.swift */,
+				500F08282EA63CB300316330 /* RevenueViewModel.swift */,
+				500F08292EA63CB300316330 /* SubscriptionsViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		500F082E2EA63CB300316330 /* Accounts */ = {
+			isa = PBXGroup;
+			children = (
+				500F082B2EA63CB300316330 /* AccountFormView.swift */,
+				500F082C2EA63CB300316330 /* AccountRowView.swift */,
+				500F082D2EA63CB300316330 /* AccountsScreen.swift */,
+			);
+			path = Accounts;
+			sourceTree = "<group>";
+		};
+		500F08302EA63CB300316330 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				500F082F2EA63CB300316330 /* SignInView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		500F08352EA63CB300316330 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				500F08312EA63CB300316330 /* BalanceCard.swift */,
+				500F08322EA63CB300316330 /* DashboardScreen.swift */,
+				500F08332EA63CB300316330 /* ProjectionChartView.swift */,
+				500F08342EA63CB300316330 /* QuickStatsView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		500F08392EA63CB300316330 /* Revenue */ = {
+			isa = PBXGroup;
+			children = (
+				500F08362EA63CB300316330 /* RevenueFormView.swift */,
+				500F08372EA63CB300316330 /* RevenueRowView.swift */,
+				500F08382EA63CB300316330 /* RevenueScreen.swift */,
+			);
+			path = Revenue;
+			sourceTree = "<group>";
+		};
+		500F083D2EA63CB300316330 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				500F083A2EA63CB300316330 /* MainTabView.swift */,
+				500F083B2EA63CB300316330 /* ToastManager.swift */,
+				500F083C2EA63CB300316330 /* ToastView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		500F08412EA63CB300316330 /* Subscriptions */ = {
+			isa = PBXGroup;
+			children = (
+				500F083E2EA63CB300316330 /* SubscriptionFormView.swift */,
+				500F083F2EA63CB300316330 /* SubscriptionRowView.swift */,
+				500F08402EA63CB300316330 /* SubscriptionsScreen.swift */,
+			);
+			path = Subscriptions;
+			sourceTree = "<group>";
+		};
+		500F08422EA63CB300316330 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				500F082E2EA63CB300316330 /* Accounts */,
+				500F08302EA63CB300316330 /* Auth */,
+				500F08352EA63CB300316330 /* Dashboard */,
+				500F08392EA63CB300316330 /* Revenue */,
+				500F083D2EA63CB300316330 /* Shared */,
+				500F08412EA63CB300316330 /* Subscriptions */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		500F08652EA63DE000316330 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		AA000000000000000A = {
 			isa = PBXGroup;
 			children = (
 				AA000000000000000B /* FinanceTrackerApp */,
+				500F08652EA63DE000316330 /* Frameworks */,
 				AA000000000000000C /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		AA000000000000000B /* FinanceTrackerApp */ = {
+			isa = PBXGroup;
+			children = (
+				500F08682EA642C700316330 /* Info.plist */,
+				500F08172EA63CB300316330 /* Config.swift */,
+				500F081B2EA63CB300316330 /* Models */,
+				500F081F2EA63CB300316330 /* Services */,
+				500F08242EA63CB300316330 /* Utilities */,
+				500F082A2EA63CB300316330 /* ViewModels */,
+				500F08422EA63CB300316330 /* Views */,
+				AA0000000000000002 /* FinanceTrackerApp.swift */,
+				AA0000000000000004 /* ContentView.swift */,
+				AA0000000000000006 /* Assets.xcassets */,
+				AA000000000000000D /* Preview Content */,
+			);
+			path = FinanceTrackerApp;
 			sourceTree = "<group>";
 		};
 		AA000000000000000C /* Products */ = {
@@ -46,17 +259,6 @@
 				AA0000000000000000 /* FinanceTrackerApp.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		AA000000000000000B /* FinanceTrackerApp */ = {
-			isa = PBXGroup;
-			children = (
-				AA0000000000000002 /* FinanceTrackerApp.swift */,
-				AA0000000000000004 /* ContentView.swift */,
-				AA0000000000000006 /* Assets.xcassets */,
-				AA000000000000000D /* Preview Content */,
-			);
-			path = FinanceTrackerApp;
 			sourceTree = "<group>";
 		};
 		AA000000000000000D /* Preview Content */ = {
@@ -95,7 +297,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					AA000000000000000E = {
 						CreatedOnToolsVersion = 15.0;
@@ -111,6 +313,9 @@
 				Base,
 			);
 			mainGroup = AA000000000000000A;
+			packageReferences = (
+				500F08642EA63D7300316330 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = AA000000000000000C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -137,6 +342,40 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				500F08432EA63CB300316330 /* AccountFormView.swift in Sources */,
+				500F08442EA63CB300316330 /* DashboardScreen.swift in Sources */,
+				500F08452EA63CB300316330 /* FallbackRates.swift in Sources */,
+				500F08462EA63CB300316330 /* FinanceItem.swift in Sources */,
+				500F08472EA63CB300316330 /* NetworkStatus.swift in Sources */,
+				500F08482EA63CB300316330 /* OfflineQueueService.swift in Sources */,
+				500F08492EA63CB300316330 /* RevenueFormView.swift in Sources */,
+				500F084A2EA63CB300316330 /* SubscriptionRowView.swift in Sources */,
+				500F084B2EA63CB300316330 /* RevenueRowView.swift in Sources */,
+				500F084C2EA63CB300316330 /* SubscriptionFormView.swift in Sources */,
+				500F084D2EA63CB300316330 /* RevenueViewModel.swift in Sources */,
+				500F084E2EA63CB300316330 /* AuthViewModel.swift in Sources */,
+				500F084F2EA63CB300316330 /* SubscriptionItem.swift in Sources */,
+				500F08502EA63CB300316330 /* ToastManager.swift in Sources */,
+				500F08512EA63CB300316330 /* AccountsViewModel.swift in Sources */,
+				500F08522EA63CB300316330 /* AccountsScreen.swift in Sources */,
+				500F08532EA63CB300316330 /* ProjectionChartView.swift in Sources */,
+				500F08542EA63CB300316330 /* RevenueScreen.swift in Sources */,
+				500F08552EA63CB300316330 /* RevenueItem.swift in Sources */,
+				500F08562EA63CB300316330 /* DateCalculations.swift in Sources */,
+				500F08572EA63CB300316330 /* Config.swift in Sources */,
+				500F08582EA63CB300316330 /* SubscriptionsScreen.swift in Sources */,
+				500F08592EA63CB300316330 /* SupabaseService.swift in Sources */,
+				500F085A2EA63CB300316330 /* AccountRowView.swift in Sources */,
+				500F085B2EA63CB300316330 /* BalanceCard.swift in Sources */,
+				500F085C2EA63CB300316330 /* DashboardViewModel.swift in Sources */,
+				500F085D2EA63CB300316330 /* QuickStatsView.swift in Sources */,
+				500F085E2EA63CB300316330 /* SignInView.swift in Sources */,
+				500F085F2EA63CB300316330 /* ToastView.swift in Sources */,
+				500F08602EA63CB300316330 /* SubscriptionsViewModel.swift in Sources */,
+				500F08612EA63CB300316330 /* MainTabView.swift in Sources */,
+				500F08622EA63CB300316330 /* FinancialCalculations.swift in Sources */,
+				500F08632EA63CB300316330 /* CurrencyService.swift in Sources */,
+				500F08642EA63CB300316330 /* LocalStorageService.swift in Sources */,
 				AA0000000000000003 /* ContentView.swift in Sources */,
 				AA0000000000000001 /* FinanceTrackerApp.swift in Sources */,
 			);
@@ -203,6 +442,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -259,6 +499,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -274,6 +515,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"FinanceTrackerApp/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FinanceTrackerApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -302,6 +544,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"FinanceTrackerApp/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FinanceTrackerApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -323,15 +566,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA0000000000000013 /* Build configuration list for PBXProject "FinanceTrackerApp" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AA0000000000000014 /* Debug */,
-				AA0000000000000015 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		AA000000000000000F /* Build configuration list for PBXNativeTarget "FinanceTrackerApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -341,7 +575,35 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		AA0000000000000013 /* Build configuration list for PBXProject "FinanceTrackerApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000014 /* Debug */,
+				AA0000000000000015 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		500F08642EA63D7300316330 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		500F08662EA63DE000316330 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 500F08642EA63D7300316330 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AA0000000000000012 /* Project object */;
 }

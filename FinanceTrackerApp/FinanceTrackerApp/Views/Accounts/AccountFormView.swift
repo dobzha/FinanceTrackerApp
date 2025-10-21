@@ -14,6 +14,7 @@ struct AccountFormView: View {
     @State private var amountString: String = ""
     @State private var currency: String = "USD"
     @State private var validationErrors: [String] = []
+    @State private var isSaving: Bool = false
 
     private let currencies = ["USD", "UAH", "EUR", "GBP", "JPY", "CNY", "CAD", "AUD", "CHF"]
 
@@ -49,6 +50,7 @@ struct AccountFormView: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { Task { await save() } }
+                    .disabled(isSaving)
             }
         }
         .onAppear { seedForm() }
@@ -75,8 +77,17 @@ struct AccountFormView: View {
     private func save() async {
         validationErrors = saveValidation()
         guard validationErrors.isEmpty else { return }
+        
+        isSaving = true
         let normalized = amountString.replacingOccurrences(of: ",", with: ".")
         let ok = await onSave(name, Double(normalized) ?? 0, currency)
-        if ok { dismiss() }
+        isSaving = false
+        
+        if ok { 
+            dismiss() 
+        } else {
+            // If save failed, add a generic error message
+            validationErrors.append("Failed to save account. Please try again.")
+        }
     }
 }
