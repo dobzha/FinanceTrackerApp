@@ -61,6 +61,18 @@ struct RevenueScreen: View {
             await viewModel.load()
             await calculateMonthlyRevenue()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .init("AccountUpdated"))) { _ in
+            Task { 
+                await viewModel.load()
+                await calculateMonthlyRevenue()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("DataRefreshNeeded"))) { _ in
+            Task { 
+                await viewModel.load()
+                await calculateMonthlyRevenue()
+            }
+        }
         .sheet(isPresented: $showForm) {
             NavigationStack {
                 RevenueFormView(accounts: viewModel.accounts, mode: editing == nil ? .create : .edit, existing: editing) { name, amount, currency, period, date, accountId in

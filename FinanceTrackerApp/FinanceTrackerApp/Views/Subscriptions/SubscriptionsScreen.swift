@@ -61,6 +61,18 @@ struct SubscriptionsScreen: View {
             await viewModel.load()
             await calculateMonthlyExpenses()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .init("AccountUpdated"))) { _ in
+            Task { 
+                await viewModel.load()
+                await calculateMonthlyExpenses()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("DataRefreshNeeded"))) { _ in
+            Task { 
+                await viewModel.load()
+                await calculateMonthlyExpenses()
+            }
+        }
         .sheet(isPresented: $showForm) {
             NavigationStack {
                 SubscriptionFormView(accounts: viewModel.accounts, mode: editing == nil ? .create : .edit, existing: editing) { name, amount, currency, period, date, accountId in

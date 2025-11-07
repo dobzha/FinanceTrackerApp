@@ -118,7 +118,7 @@ struct MainAppView: View {
                 }
                 .tag(3)
             
-            SettingsView()
+            SettingsScreen()
                 .environmentObject(AuthViewModel.shared)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")

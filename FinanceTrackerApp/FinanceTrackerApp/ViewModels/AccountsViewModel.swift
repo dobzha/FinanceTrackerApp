@@ -19,12 +19,20 @@ final class AccountsViewModel: ObservableObject {
         if authViewModel.isAuthenticated {
             // Load from Supabase when authenticated
             do {
+                print("📥 [AccountsViewModel] Loading accounts from Supabase...")
                 accounts = try await SupabaseService.shared.fetchAccounts()
+                print("✅ [AccountsViewModel] Loaded \(accounts.count) accounts from Supabase")
             } catch {
-                errorMessage = (error as NSError).localizedDescription
+                let nsError = error as NSError
+                print("❌ [AccountsViewModel] Error loading from Supabase: \(nsError.localizedDescription)")
+                print("❌ [AccountsViewModel] Full error: \(error)")
+                errorMessage = "Failed to load accounts: \(nsError.localizedDescription)"
+                // Fall back to empty array instead of showing cached data
+                accounts = []
             }
         } else {
             // Load from local storage when not authenticated
+            print("📂 [AccountsViewModel] Loading from local storage (not authenticated)")
             accounts = LocalStorageService.shared.loadAccounts()
         }
     }

@@ -19,16 +19,23 @@ final class SubscriptionsViewModel: ObservableObject {
         if authViewModel.isAuthenticated {
             // Load from Supabase when authenticated
             do {
+                print("📥 [SubscriptionsViewModel] Loading from Supabase...")
                 async let subsTask = SupabaseService.shared.fetchSubscriptions()
                 async let accTask = SupabaseService.shared.fetchAccounts()
                 let (subs, accs) = try await (subsTask, accTask)
                 subscriptions = subs
                 accounts = accs
+                print("✅ [SubscriptionsViewModel] Loaded \(subscriptions.count) subscriptions, \(accounts.count) accounts")
             } catch {
-                errorMessage = (error as NSError).localizedDescription
+                let nsError = error as NSError
+                print("❌ [SubscriptionsViewModel] Error: \(nsError.localizedDescription)")
+                errorMessage = "Failed to load: \(nsError.localizedDescription)"
+                subscriptions = []
+                accounts = []
             }
         } else {
             // Load from local storage when not authenticated
+            print("📂 [SubscriptionsViewModel] Loading from local storage")
             subscriptions = LocalStorageService.shared.loadSubscriptions()
             accounts = LocalStorageService.shared.loadAccounts()
         }

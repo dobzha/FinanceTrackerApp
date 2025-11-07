@@ -19,16 +19,23 @@ final class RevenueViewModel: ObservableObject {
         if authViewModel.isAuthenticated {
             // Load from Supabase when authenticated
             do {
+                print("📥 [RevenueViewModel] Loading from Supabase...")
                 async let revTask = SupabaseService.shared.fetchRevenues()
                 async let accTask = SupabaseService.shared.fetchAccounts()
                 let (revs, accs) = try await (revTask, accTask)
                 revenues = revs
                 accounts = accs
+                print("✅ [RevenueViewModel] Loaded \(revenues.count) revenues, \(accounts.count) accounts")
             } catch {
-                errorMessage = (error as NSError).localizedDescription
+                let nsError = error as NSError
+                print("❌ [RevenueViewModel] Error: \(nsError.localizedDescription)")
+                errorMessage = "Failed to load: \(nsError.localizedDescription)"
+                revenues = []
+                accounts = []
             }
         } else {
             // Load from local storage when not authenticated
+            print("📂 [RevenueViewModel] Loading from local storage")
             revenues = LocalStorageService.shared.loadRevenues()
             accounts = LocalStorageService.shared.loadAccounts()
         }

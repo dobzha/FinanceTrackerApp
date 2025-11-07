@@ -75,10 +75,28 @@ struct AccountsScreen: View {
             await viewModel.loadAccounts()
             await calculateTotalBalance()
         }
-        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+        .onReceive(NotificationCenter.default.publisher(for: .init("AccountUpdated"))) { _ in
+            Task { 
+                await viewModel.loadAccounts()
+                await calculateTotalBalance()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("DataRefreshNeeded"))) { _ in
+            Task { 
+                await viewModel.loadAccounts()
+                await calculateTotalBalance()
+            }
+        }
+        .alert("Error Loading Data", isPresented: .constant(viewModel.errorMessage != nil), presenting: viewModel.errorMessage) { errorMsg in
             Button("OK") { viewModel.errorMessage = nil }
-        } message: {
-            Text(viewModel.errorMessage ?? "")
+            Button("Retry") { 
+                Task {
+                    await viewModel.loadAccounts()
+                    await calculateTotalBalance()
+                }
+            }
+        } message: { errorMsg in
+            Text(errorMsg)
         }
         .sheet(isPresented: $showForm) {
             NavigationStack {

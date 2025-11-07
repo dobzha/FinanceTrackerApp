@@ -27,9 +27,15 @@ final class AuthViewModel: ObservableObject {
                 self.isAuthenticated = (user != nil)
             }
             
-            // If user just became authenticated, sync local data
+            // If user just became authenticated, clear local data and load from Supabase
             if !wasAuthenticated && self.isAuthenticated {
-                await syncLocalDataToCloud()
+                await clearLocalDataAndRefresh()
+            }
+            
+            // If user just signed out, we can keep local storage for offline use
+            if wasAuthenticated && !self.isAuthenticated {
+                // Optionally clear data on sign out (currently keeping it for offline mode)
+                // LocalStorageService.shared.clearAllData()
             }
         } catch {
             await MainActor.run {
@@ -39,15 +45,19 @@ final class AuthViewModel: ObservableObject {
         }
     }
     
-    private func syncLocalDataToCloud() async {
-        let success = await LocalStorageService.shared.syncLocalDataToCloud()
-        if success {
-            print("Successfully synced local data to cloud")
-            // Post notification to refresh all views
+    private func clearLocalDataAndRefresh() async {
+        print("🔄 User authenticated - clearing local storage and loading from Supabase")
+        
+        // Clear all local cached data (old data created before sign-in)
+        LocalStorageService.shared.clearAllData()
+        
+        // Post notifications to force all ViewModels to refresh from Supabase
+        await MainActor.run {
             NotificationCenter.default.post(name: .init("AccountUpdated"), object: nil)
-        } else {
-            print("Failed to sync local data to cloud")
+            NotificationCenter.default.post(name: .init("DataRefreshNeeded"), object: nil)
         }
+        
+        print("✅ Local storage cleared - app will now show Supabase data")
     }
 
     func signInWithGoogle() async {
@@ -72,5 +82,22 @@ final class AuthViewModel: ObservableObject {
             errorMessage = (error as NSError).localizedDescription
         }
         isLoading = false
+    }
+    
+    // MARK: - Manual Data Refresh
+    
+    /// Force clear all local cached data and reload from Supabase
+    /// Useful for troubleshooting or if old local data is showing
+    func clearCacheAndReload() async {
+        print("🗑️ Manually clearing all cached data")
+        LocalStorageService.shared.clearAllData()
+        
+        // Post notifications to force all ViewModels to refresh
+        await MainActor.run {
+            NotificationCenter.default.post(name: .init("AccountUpdated"), object: nil)
+            NotificationCenter.default.post(name: .init("DataRefreshNeeded"), object: nil)
+        }
+        
+        print("✅ Cache cleared - app will reload data")
     }
 }

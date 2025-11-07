@@ -41,6 +41,7 @@
 		500F08622EA63CB300316330 /* FinancialCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08222EA63CB300316330 /* FinancialCalculations.swift */; };
 		500F08632EA63CB300316330 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F081C2EA63CB300316330 /* CurrencyService.swift */; };
 		500F08642EA63CB300316330 /* LocalStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08652EA63CB300316330 /* LocalStorageService.swift */; };
+		500F086A2EA63CB300316330 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08692EA63CB300316330 /* SettingsScreen.swift */; };
 		500F08672EA63DE000316330 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 500F08662EA63DE000316330 /* Supabase */; };
 		AA0000000000000001 /* FinanceTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000002 /* FinanceTrackerApp.swift */; };
 		AA0000000000000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000004 /* ContentView.swift */; };
@@ -83,6 +84,7 @@
 		500F083E2EA63CB300316330 /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
 		500F083F2EA63CB300316330 /* SubscriptionRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRowView.swift; sourceTree = "<group>"; };
 		500F08402EA63CB300316330 /* SubscriptionsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionsScreen.swift; sourceTree = "<group>"; };
+		500F08692EA63CB300316330 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
 		500F08682EA642C700316330 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AA0000000000000000 /* FinanceTrackerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinanceTrackerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000002 /* FinanceTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceTrackerApp.swift; sourceTree = "<group>"; };
@@ -206,6 +208,14 @@
 			path = Subscriptions;
 			sourceTree = "<group>";
 		};
+		500F086B2EA63CB300316330 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				500F08692EA63CB300316330 /* SettingsScreen.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		500F08422EA63CB300316330 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -213,6 +223,7 @@
 				500F08302EA63CB300316330 /* Auth */,
 				500F08352EA63CB300316330 /* Dashboard */,
 				500F08392EA63CB300316330 /* Revenue */,
+				500F086B2EA63CB300316330 /* Settings */,
 				500F083D2EA63CB300316330 /* Shared */,
 				500F08412EA63CB300316330 /* Subscriptions */,
 			);
@@ -376,6 +387,7 @@
 				500F08622EA63CB300316330 /* FinancialCalculations.swift in Sources */,
 				500F08632EA63CB300316330 /* CurrencyService.swift in Sources */,
 				500F08642EA63CB300316330 /* LocalStorageService.swift in Sources */,
+				500F086A2EA63CB300316330 /* SettingsScreen.swift in Sources */,
 				AA0000000000000003 /* ContentView.swift in Sources */,
 				AA0000000000000001 /* FinanceTrackerApp.swift in Sources */,
 			);
