@@ -19,82 +19,55 @@ final class SupabaseService {
         
         // Configure custom JSON decoder with flexible date parsing
         customDecoder = JSONDecoder()
-        customDecoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let dateString = try container.decode(String.self)
-            
-            // ISO8601 with fractional seconds
-            if #available(iOS 15.0, *) {
-                let iso8601 = ISO8601DateFormatter()
-                iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                if let date = iso8601.date(from: dateString) {
-                    return date
-                }
+        customDecoder.dateDecodingStrategy = .custom(Self.decodeFlexibleDate)
+    }
+    
+    // MARK: - Date Decoding Helper
+    
+    /// Decodes dates in various formats returned by Supabase
+    /// Supports: ISO8601 with microseconds, milliseconds, standard, date-only, and datetime formats
+    private static func decodeFlexibleDate(from decoder: Decoder) throws -> Date {
+        let container = try decoder.singleValueContainer()
+        let dateString = try container.decode(String.self)
+        
+        // Try ISO8601 with fractional seconds (iOS 15+)
+        if #available(iOS 15.0, *) {
+            let iso8601 = ISO8601DateFormatter()
+            iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = iso8601.date(from: dateString) {
+                return date
             }
-            
-            // Try DateFormatter with various formats
-            let formatters: [DateFormatter] = [
-                // ISO8601 with microseconds: 2025-11-07T11:45:05.053904+00:00
-                {
-                    let f = DateFormatter()
-                    f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ"
-                    f.locale = Locale(identifier: "en_US_POSIX")
-                    f.timeZone = TimeZone(secondsFromGMT: 0)
-                    return f
-                }(),
-                // ISO8601 with milliseconds: 2025-11-07T11:45:05.053+00:00
-                {
-                    let f = DateFormatter()
-                    f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
-                    f.locale = Locale(identifier: "en_US_POSIX")
-                    f.timeZone = TimeZone(secondsFromGMT: 0)
-                    return f
-                }(),
-                // ISO8601 standard: 2025-11-07T11:45:05+00:00
-                {
-                    let f = DateFormatter()
-                    f.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-                    f.locale = Locale(identifier: "en_US_POSIX")
-                    f.timeZone = TimeZone(secondsFromGMT: 0)
-                    return f
-                }(),
-                // ISO8601 with Z: 2025-11-07T11:45:05Z
-                {
-                    let f = DateFormatter()
-                    f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-                    f.locale = Locale(identifier: "en_US_POSIX")
-                    f.timeZone = TimeZone(secondsFromGMT: 0)
-                    return f
-                }(),
-                // Date only: 2025-11-07
-                {
-                    let f = DateFormatter()
-                    f.dateFormat = "yyyy-MM-dd"
-                    f.locale = Locale(identifier: "en_US_POSIX")
-                    f.timeZone = TimeZone(secondsFromGMT: 0)
-                    return f
-                }(),
-                // Datetime: 2025-11-07 11:45:05
-                {
-                    let f = DateFormatter()
-                    f.dateFormat = "yyyy-MM-dd HH:mm:ss"
-                    f.locale = Locale(identifier: "en_US_POSIX")
-                    f.timeZone = TimeZone(secondsFromGMT: 0)
-                    return f
-                }()
-            ]
-            
-            for formatter in formatters {
-                if let date = formatter.date(from: dateString) {
-                    return date
-                }
-            }
-            
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "Cannot decode date string: \(dateString)"
-            )
         }
+        
+        // Try common date formats using helper
+        let formats = [
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ",  // Microseconds with timezone
+            "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ",     // Milliseconds with timezone
+            "yyyy-MM-dd'T'HH:mm:ssZZZZZ",         // Standard with timezone
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",           // UTC timezone
+            "yyyy-MM-dd",                          // Date only
+            "yyyy-MM-dd HH:mm:ss"                  // Datetime
+        ]
+        
+        for format in formats {
+            if let date = Self.parseDate(dateString, format: format) {
+                return date
+            }
+        }
+        
+        throw DecodingError.dataCorruptedError(
+            in: container,
+            debugDescription: "Cannot decode date string: \(dateString)"
+        )
+    }
+    
+    /// Helper method to parse date with a specific format
+    private static func parseDate(_ dateString: String, format: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter.date(from: dateString)
     }
 
     // MARK: - Auth
