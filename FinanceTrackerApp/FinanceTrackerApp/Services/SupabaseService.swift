@@ -30,25 +30,54 @@ final class SupabaseService {
         let container = try decoder.singleValueContainer()
         let dateString = try container.decode(String.self)
         
-        // Try ISO8601 with fractional seconds (iOS 15+)
+        // Process the date string to handle microseconds (6+ digits after decimal)
+        var processedDateString = dateString
+        
+        // Regex to match fractional seconds with 4 or more digits
+        // Pattern: .SSSS+ followed by timezone (Z or +/-HH:MM)
+        if let regex = try? NSRegularExpression(pattern: "\\.(\\d{4,})([+-]\\d{2}:\\d{2}|Z)", options: []),
+           let match = regex.firstMatch(in: dateString, options: [], range: NSRange(dateString.startIndex..., in: dateString)) {
+            if let fractionalRange = Range(match.range(at: 1), in: dateString),
+               let timezoneRange = Range(match.range(at: 2), in: dateString) {
+                let fractional = String(dateString[fractionalRange])
+                let timezone = String(dateString[timezoneRange])
+                // Take only first 3 digits (milliseconds) - this is what iOS formatters support
+                let milliseconds = String(fractional.prefix(3))
+                // Rebuild the date string with 3-digit fractional seconds
+                let beforeFractional = dateString[..<fractionalRange.lowerBound]
+                processedDateString = beforeFractional + "." + milliseconds + timezone
+            }
+        }
+        
+        // Try ISO8601DateFormatter with fractional seconds (iOS 15+)
         if #available(iOS 15.0, *) {
             let iso8601 = ISO8601DateFormatter()
             iso8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            if let date = iso8601.date(from: dateString) {
+            if let date = iso8601.date(from: processedDateString) {
                 return date
             }
         }
         
-        // Try common date formats using helper
+        // Fallback: Try manual parsing with DateFormatter for various formats
         let formats = [
-            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ",  // Microseconds with timezone
-            "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ",     // Milliseconds with timezone
-            "yyyy-MM-dd'T'HH:mm:ssZZZZZ",         // Standard with timezone
-            "yyyy-MM-dd'T'HH:mm:ss'Z'",           // UTC timezone
+            "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ",     // Milliseconds with timezone offset (e.g., +00:00)
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ",  // Microseconds with timezone (fallback)
+            "yyyy-MM-dd'T'HH:mm:ssZZZZZ",         // Standard with timezone offset
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",       // Milliseconds with Z
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",           // Standard with Z
+            "yyyy-MM-dd'T'HH:mm:ss",              // No timezone
             "yyyy-MM-dd",                          // Date only
-            "yyyy-MM-dd HH:mm:ss"                  // Datetime
+            "yyyy-MM-dd HH:mm:ss"                  // Datetime with space
         ]
         
+        // Try with the processed string first
+        for format in formats {
+            if let date = Self.parseDate(processedDateString, format: format) {
+                return date
+            }
+        }
+        
+        // If processed string didn't work, try with original string
         for format in formats {
             if let date = Self.parseDate(dateString, format: format) {
                 return date
@@ -124,16 +153,21 @@ final class SupabaseService {
         print("✅ [SupabaseService] User authenticated: \(user.id.uuidString)")
         
         do {
-            let result: [FinanceItem] = try await client
+            // Use custom decoder to handle date format issues
+            let response = try await client
                 .from("finance_items")
                 .select()
                 .eq("user_id", value: user.id.uuidString)
                 .order("created_at", ascending: true)
                 .execute()
-                .value
+            
+            let result = try customDecoder.decode([FinanceItem].self, from: response.data)
             
             print("✅ [SupabaseService] Fetched \(result.count) accounts successfully")
             return result
+        } catch let decodingError as DecodingError {
+            print("❌ [SupabaseService] Date decoding error for accounts: \(decodingError)")
+            throw NSError(domain: "SupabaseService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Date format error. Please check account dates."])
         } catch {
             print("❌ [SupabaseService] Error fetching accounts: \(error)")
             throw error

@@ -18,36 +18,76 @@ final class DashboardViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     
+    private var loadTask: Task<Void, Never>?
+    
     private var authViewModel: AuthViewModel {
         // Get the shared AuthViewModel instance
         return AuthViewModel.shared
     }
 
     func load() async {
-        isLoading = true
-        defer { isLoading = false }
+        // Cancel any existing load task to prevent multiple simultaneous requests
+        loadTask?.cancel()
         
-        if authViewModel.isAuthenticated {
-            // Load from Supabase when authenticated
-            do {
-                async let accTask = SupabaseService.shared.fetchAccounts()
-                async let subTask = SupabaseService.shared.fetchSubscriptions()
-                async let revTask = SupabaseService.shared.fetchRevenues()
-                let (acc, subs, revs) = try await (accTask, subTask, revTask)
-                accounts = acc
-                subscriptions = subs
-                revenues = revs
+        // Create a new task
+        loadTask = Task {
+            isLoading = true
+            defer { isLoading = false }
+            
+            if authViewModel.isAuthenticated {
+                // Load from Supabase when authenticated
+                do {
+                    // Check if task was cancelled before starting the network request
+                    try Task.checkCancellation()
+                    
+                    // Fetch data sequentially to avoid overwhelming the connection
+                    let acc = try await SupabaseService.shared.fetchAccounts()
+                    
+                    // Check cancellation between requests
+                    try Task.checkCancellation()
+                    
+                    let subs = try await SupabaseService.shared.fetchSubscriptions()
+                    
+                    // Check cancellation between requests
+                    try Task.checkCancellation()
+                    
+                    let revs = try await SupabaseService.shared.fetchRevenues()
+                    
+                    // Check if task was cancelled before updating UI
+                    try Task.checkCancellation()
+                    
+                    accounts = acc
+                    subscriptions = subs
+                    revenues = revs
+                    errorMessage = nil
+                    await compute()
+                } catch is CancellationError {
+                    print("⚠️ [DashboardViewModel] Load task was cancelled")
+                    // Don't update UI or show error for cancelled tasks
+                    // Keep existing data instead of clearing
+                } catch {
+                    let nsError = error as NSError
+                    // Ignore cancelled network errors (don't show error to user)
+                    if nsError.code == NSURLErrorCancelled || nsError.code == -999 {
+                        print("⚠️ [DashboardViewModel] Network request was cancelled, keeping existing data")
+                        return
+                    }
+                    
+                    // Only show user-facing errors for real failures
+                    errorMessage = nsError.localizedDescription
+                    // Keep existing data on error instead of clearing
+                }
+            } else {
+                // Load from local storage when not authenticated
+                accounts = LocalStorageService.shared.loadAccounts()
+                subscriptions = LocalStorageService.shared.loadSubscriptions()
+                revenues = LocalStorageService.shared.loadRevenues()
+                errorMessage = nil
                 await compute()
-            } catch {
-                errorMessage = (error as NSError).localizedDescription
             }
-        } else {
-            // Load from local storage when not authenticated
-            accounts = LocalStorageService.shared.loadAccounts()
-            subscriptions = LocalStorageService.shared.loadSubscriptions()
-            revenues = LocalStorageService.shared.loadRevenues()
-            await compute()
         }
+        
+        await loadTask?.value
     }
 
     private func compute() async {

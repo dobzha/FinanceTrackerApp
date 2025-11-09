@@ -7,34 +7,64 @@ final class AccountsViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     
+    private var loadTask: Task<Void, Never>?
+    
     private var authViewModel: AuthViewModel {
         // Get the shared AuthViewModel instance
         return AuthViewModel.shared
     }
 
     func loadAccounts() async {
-        isLoading = true
-        defer { isLoading = false }
+        // Cancel any existing load task to prevent multiple simultaneous requests
+        loadTask?.cancel()
         
-        if authViewModel.isAuthenticated {
-            // Load from Supabase when authenticated
-            do {
-                print("📥 [AccountsViewModel] Loading accounts from Supabase...")
-                accounts = try await SupabaseService.shared.fetchAccounts()
-                print("✅ [AccountsViewModel] Loaded \(accounts.count) accounts from Supabase")
-            } catch {
-                let nsError = error as NSError
-                print("❌ [AccountsViewModel] Error loading from Supabase: \(nsError.localizedDescription)")
-                print("❌ [AccountsViewModel] Full error: \(error)")
-                errorMessage = "Failed to load accounts: \(nsError.localizedDescription)"
-                // Fall back to empty array instead of showing cached data
-                accounts = []
+        // Create a new task
+        loadTask = Task {
+            isLoading = true
+            defer { isLoading = false }
+            
+            if authViewModel.isAuthenticated {
+                // Load from Supabase when authenticated
+                do {
+                    // Check if task was cancelled before starting the network request
+                    try Task.checkCancellation()
+                    
+                    print("📥 [AccountsViewModel] Loading accounts from Supabase...")
+                    let fetchedAccounts = try await SupabaseService.shared.fetchAccounts()
+                    
+                    // Check if task was cancelled before updating UI
+                    try Task.checkCancellation()
+                    
+                    accounts = fetchedAccounts
+                    errorMessage = nil
+                    print("✅ [AccountsViewModel] Loaded \(accounts.count) accounts from Supabase")
+                } catch is CancellationError {
+                    print("⚠️ [AccountsViewModel] Load task was cancelled")
+                    // Don't update UI or show error for cancelled tasks
+                    // Keep existing data instead of clearing
+                } catch {
+                    let nsError = error as NSError
+                    // Ignore cancelled network errors (don't show error to user)
+                    if nsError.code == NSURLErrorCancelled || nsError.code == -999 {
+                        print("⚠️ [AccountsViewModel] Network request was cancelled, keeping existing data")
+                        return
+                    }
+                    
+                    // Only show user-facing errors for real failures
+                    print("❌ [AccountsViewModel] Error loading from Supabase: \(nsError.localizedDescription)")
+                    print("❌ [AccountsViewModel] Full error: \(error)")
+                    errorMessage = nsError.localizedDescription
+                    // Keep existing accounts on error instead of clearing them
+                }
+            } else {
+                // Load from local storage when not authenticated
+                print("📂 [AccountsViewModel] Loading from local storage (not authenticated)")
+                accounts = LocalStorageService.shared.loadAccounts()
+                errorMessage = nil
             }
-        } else {
-            // Load from local storage when not authenticated
-            print("📂 [AccountsViewModel] Loading from local storage (not authenticated)")
-            accounts = LocalStorageService.shared.loadAccounts()
         }
+        
+        await loadTask?.value
     }
 
     func createAccount(name: String, amount: Double, currency: String) async -> Bool {

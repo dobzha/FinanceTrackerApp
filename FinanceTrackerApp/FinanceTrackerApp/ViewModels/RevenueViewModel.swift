@@ -8,37 +8,71 @@ final class RevenueViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     
+    private var loadTask: Task<Void, Never>?
+    
     private var authViewModel: AuthViewModel {
         return AuthViewModel.shared
     }
 
     func load() async {
-        isLoading = true
-        defer { isLoading = false }
+        // Cancel any existing load task to prevent multiple simultaneous requests
+        loadTask?.cancel()
         
-        if authViewModel.isAuthenticated {
-            // Load from Supabase when authenticated
-            do {
-                print("📥 [RevenueViewModel] Loading from Supabase...")
-                async let revTask = SupabaseService.shared.fetchRevenues()
-                async let accTask = SupabaseService.shared.fetchAccounts()
-                let (revs, accs) = try await (revTask, accTask)
-                revenues = revs
-                accounts = accs
-                print("✅ [RevenueViewModel] Loaded \(revenues.count) revenues, \(accounts.count) accounts")
-            } catch {
-                let nsError = error as NSError
-                print("❌ [RevenueViewModel] Error: \(nsError.localizedDescription)")
-                errorMessage = "Failed to load: \(nsError.localizedDescription)"
-                revenues = []
-                accounts = []
+        // Create a new task
+        loadTask = Task {
+            isLoading = true
+            defer { isLoading = false }
+            
+            if authViewModel.isAuthenticated {
+                // Load from Supabase when authenticated
+                do {
+                    // Check if task was cancelled before starting the network request
+                    try Task.checkCancellation()
+                    
+                    print("📥 [RevenueViewModel] Loading from Supabase...")
+                    
+                    // Fetch data sequentially to avoid overwhelming the connection
+                    let revs = try await SupabaseService.shared.fetchRevenues()
+                    
+                    // Check cancellation between requests
+                    try Task.checkCancellation()
+                    
+                    let accs = try await SupabaseService.shared.fetchAccounts()
+                    
+                    // Check if task was cancelled before updating UI
+                    try Task.checkCancellation()
+                    
+                    revenues = revs
+                    accounts = accs
+                    errorMessage = nil
+                    print("✅ [RevenueViewModel] Loaded \(revenues.count) revenues, \(accounts.count) accounts")
+                } catch is CancellationError {
+                    print("⚠️ [RevenueViewModel] Load task was cancelled")
+                    // Don't update UI or show error for cancelled tasks
+                    // Keep existing data instead of clearing
+                } catch {
+                    let nsError = error as NSError
+                    // Ignore cancelled network errors (don't show error to user)
+                    if nsError.code == NSURLErrorCancelled || nsError.code == -999 {
+                        print("⚠️ [RevenueViewModel] Network request was cancelled, keeping existing data")
+                        return
+                    }
+                    
+                    // Only show user-facing errors for real failures
+                    print("❌ [RevenueViewModel] Error: \(nsError.localizedDescription)")
+                    errorMessage = nsError.localizedDescription
+                    // Keep existing data on error instead of clearing
+                }
+            } else {
+                // Load from local storage when not authenticated
+                print("📂 [RevenueViewModel] Loading from local storage")
+                revenues = LocalStorageService.shared.loadRevenues()
+                accounts = LocalStorageService.shared.loadAccounts()
+                errorMessage = nil
             }
-        } else {
-            // Load from local storage when not authenticated
-            print("📂 [RevenueViewModel] Loading from local storage")
-            revenues = LocalStorageService.shared.loadRevenues()
-            accounts = LocalStorageService.shared.loadAccounts()
         }
+        
+        await loadTask?.value
     }
 
     func create(name: String, amount: Double, currency: String, period: RevenuePeriod, repetitionDate: Date?, accountId: UUID?) async -> Bool {

@@ -1,0 +1,41 @@
+Fix data loading errors: Date decoding and request cancellation
+
+This commit fixes three critical issues preventing proper data loading
+when switching between tabs (Accounts, Subscriptions, Revenue):
+
+1. Date Decoding Error
+   - Enhanced date decoder to handle Supabase microsecond timestamps
+   - Added regex preprocessing for 6-digit fractional seconds
+   - Unified decoder usage across all fetch methods
+
+2. Request Cancellation Errors
+   - Implemented task management in all ViewModels
+   - Added graceful cancellation handling
+   - Filtered -999 error codes from user-facing alerts
+   - Changed from parallel to sequential data fetching
+
+3. Inconsistent Data Fetching
+   - Updated fetchAccounts() to use custom decoder
+   - Standardized error handling across all fetch methods
+   - Improved logging for better debugging
+
+Files modified:
+- Services/SupabaseService.swift (date decoder + fetch consistency)
+- ViewModels/AccountsViewModel.swift (task cancellation)
+- ViewModels/SubscriptionsViewModel.swift (task cancellation)
+- ViewModels/RevenueViewModel.swift (task cancellation)
+- ViewModels/DashboardViewModel.swift (task cancellation)
+
+Documentation added:
+- DATA_LOADING_FIX.md (technical details)
+- CHANGES_SUMMARY.md (quick reference)
+- VALIDATION_CHECKLIST.md (testing guide)
+
+Testing:
+- No linter errors
+- All ViewModels handle cancellation
+- Date formats tested with microsecond precision
+- Sequential loading prevents connection overload
+
+Fixes: Date format errors, cancelled request dialogs, rapid tab switching issues
+

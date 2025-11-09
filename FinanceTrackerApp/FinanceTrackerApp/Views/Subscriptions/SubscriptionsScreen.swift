@@ -73,6 +73,20 @@ struct SubscriptionsScreen: View {
                 await calculateMonthlyExpenses()
             }
         }
+        .alert("Error Loading Data", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        ), presenting: viewModel.errorMessage) { errorMsg in
+            Button("OK") { viewModel.errorMessage = nil }
+            Button("Retry") { 
+                Task {
+                    await viewModel.load()
+                    await calculateMonthlyExpenses()
+                }
+            }
+        } message: { errorMsg in
+            Text(errorMsg)
+        }
         .sheet(isPresented: $showForm) {
             NavigationStack {
                 SubscriptionFormView(accounts: viewModel.accounts, mode: editing == nil ? .create : .edit, existing: editing) { name, amount, currency, period, date, accountId in

@@ -87,7 +87,10 @@ struct AccountsScreen: View {
                 await calculateTotalBalance()
             }
         }
-        .alert("Error Loading Data", isPresented: .constant(viewModel.errorMessage != nil), presenting: viewModel.errorMessage) { errorMsg in
+        .alert("Error Loading Data", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        ), presenting: viewModel.errorMessage) { errorMsg in
             Button("OK") { viewModel.errorMessage = nil }
             Button("Retry") { 
                 Task {
