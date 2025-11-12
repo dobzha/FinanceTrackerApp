@@ -41,8 +41,10 @@
 		500F08622EA63CB300316330 /* FinancialCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08222EA63CB300316330 /* FinancialCalculations.swift */; };
 		500F08632EA63CB300316330 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F081C2EA63CB300316330 /* CurrencyService.swift */; };
 		500F08642EA63CB300316330 /* LocalStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08652EA63CB300316330 /* LocalStorageService.swift */; };
-		500F086A2EA63CB300316330 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08692EA63CB300316330 /* SettingsScreen.swift */; };
 		500F08672EA63DE000316330 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 500F08662EA63DE000316330 /* Supabase */; };
+		500F086A2EA63CB300316330 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F08692EA63CB300316330 /* SettingsScreen.swift */; };
+		500F086C2EC0FA6700316330 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F086B2EC0FA6700316330 /* Transaction.swift */; };
+		500F086E2EC0FA8D00316330 /* TransactionProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500F086D2EC0FA8D00316330 /* TransactionProcessingService.swift */; };
 		AA0000000000000001 /* FinanceTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000002 /* FinanceTrackerApp.swift */; };
 		AA0000000000000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000004 /* ContentView.swift */; };
 		AA0000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000006 /* Assets.xcassets */; };
@@ -57,7 +59,6 @@
 		500F081C2EA63CB300316330 /* CurrencyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
 		500F081D2EA63CB300316330 /* OfflineQueueService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineQueueService.swift; sourceTree = "<group>"; };
 		500F081E2EA63CB300316330 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
-		500F08652EA63CB300316330 /* LocalStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorageService.swift; sourceTree = "<group>"; };
 		500F08202EA63CB300316330 /* DateCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateCalculations.swift; sourceTree = "<group>"; };
 		500F08212EA63CB300316330 /* FallbackRates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallbackRates.swift; sourceTree = "<group>"; };
 		500F08222EA63CB300316330 /* FinancialCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialCalculations.swift; sourceTree = "<group>"; };
@@ -84,8 +85,11 @@
 		500F083E2EA63CB300316330 /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
 		500F083F2EA63CB300316330 /* SubscriptionRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRowView.swift; sourceTree = "<group>"; };
 		500F08402EA63CB300316330 /* SubscriptionsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionsScreen.swift; sourceTree = "<group>"; };
-		500F08692EA63CB300316330 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		500F08652EA63CB300316330 /* LocalStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorageService.swift; sourceTree = "<group>"; };
 		500F08682EA642C700316330 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		500F08692EA63CB300316330 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		500F086B2EC0FA6700316330 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
+		500F086D2EC0FA8D00316330 /* TransactionProcessingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionProcessingService.swift; sourceTree = "<group>"; };
 		AA0000000000000000 /* FinanceTrackerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinanceTrackerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000002 /* FinanceTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceTrackerApp.swift; sourceTree = "<group>"; };
 		AA0000000000000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -108,6 +112,7 @@
 		500F081B2EA63CB300316330 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				500F086B2EC0FA6700316330 /* Transaction.swift */,
 				500F08182EA63CB300316330 /* FinanceItem.swift */,
 				500F08192EA63CB300316330 /* RevenueItem.swift */,
 				500F081A2EA63CB300316330 /* SubscriptionItem.swift */,
@@ -118,6 +123,7 @@
 		500F081F2EA63CB300316330 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				500F086D2EC0FA8D00316330 /* TransactionProcessingService.swift */,
 				500F081C2EA63CB300316330 /* CurrencyService.swift */,
 				500F081D2EA63CB300316330 /* OfflineQueueService.swift */,
 				500F081E2EA63CB300316330 /* SupabaseService.swift */,
@@ -208,14 +214,6 @@
 			path = Subscriptions;
 			sourceTree = "<group>";
 		};
-		500F086B2EA63CB300316330 /* Settings */ = {
-			isa = PBXGroup;
-			children = (
-				500F08692EA63CB300316330 /* SettingsScreen.swift */,
-			);
-			path = Settings;
-			sourceTree = "<group>";
-		};
 		500F08422EA63CB300316330 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -235,6 +233,14 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		500F086B2EA63CB300316330 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				500F08692EA63CB300316330 /* SettingsScreen.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		AA000000000000000A = {
@@ -377,12 +383,14 @@
 				500F08582EA63CB300316330 /* SubscriptionsScreen.swift in Sources */,
 				500F08592EA63CB300316330 /* SupabaseService.swift in Sources */,
 				500F085A2EA63CB300316330 /* AccountRowView.swift in Sources */,
+				500F086E2EC0FA8D00316330 /* TransactionProcessingService.swift in Sources */,
 				500F085B2EA63CB300316330 /* BalanceCard.swift in Sources */,
 				500F085C2EA63CB300316330 /* DashboardViewModel.swift in Sources */,
 				500F085D2EA63CB300316330 /* QuickStatsView.swift in Sources */,
 				500F085E2EA63CB300316330 /* SignInView.swift in Sources */,
 				500F085F2EA63CB300316330 /* ToastView.swift in Sources */,
 				500F08602EA63CB300316330 /* SubscriptionsViewModel.swift in Sources */,
+				500F086C2EC0FA6700316330 /* Transaction.swift in Sources */,
 				500F08612EA63CB300316330 /* MainTabView.swift in Sources */,
 				500F08622EA63CB300316330 /* FinancialCalculations.swift in Sources */,
 				500F08632EA63CB300316330 /* CurrencyService.swift in Sources */,

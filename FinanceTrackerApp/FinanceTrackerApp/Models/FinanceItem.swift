@@ -7,6 +7,7 @@ struct FinanceItem: Codable, Identifiable, Hashable {
     var name: String
     var amount: Double
     var currency: String
+    var lastProcessedDate: Date?
     let createdAt: Date?
     let updatedAt: Date?
 
@@ -16,6 +17,7 @@ struct FinanceItem: Codable, Identifiable, Hashable {
         case name
         case amount
         case currency
+        case lastProcessedDate = "last_processed_date"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }

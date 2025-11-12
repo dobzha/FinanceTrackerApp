@@ -8,6 +8,7 @@ final class LocalStorageService: ObservableObject {
     private let accountsKey = "local_accounts_v1"
     private let subscriptionsKey = "local_subscriptions_v1"
     private let revenuesKey = "local_revenues_v1"
+    private let transactionsKey = "local_transactions_v1"
     
     // MARK: - Accounts
     
@@ -117,12 +118,58 @@ final class LocalStorageService: ObservableObject {
         saveRevenues(revenues)
     }
     
+    // MARK: - Transactions
+    
+    func saveTransactions(_ transactions: [Transaction]) {
+        if let data = try? JSONEncoder().encode(transactions) {
+            UserDefaults.standard.set(data, forKey: transactionsKey)
+        }
+    }
+    
+    func loadTransactions(accountId: UUID? = nil, startDate: Date? = nil, endDate: Date? = nil) -> [Transaction] {
+        guard let data = UserDefaults.standard.data(forKey: transactionsKey),
+              let transactions = try? JSONDecoder().decode([Transaction].self, from: data) else {
+            return []
+        }
+        
+        var filteredTransactions = transactions
+        
+        // Filter by account if specified
+        if let accountId = accountId {
+            filteredTransactions = filteredTransactions.filter { $0.accountId == accountId }
+        }
+        
+        // Filter by date range if specified
+        if let startDate = startDate {
+            filteredTransactions = filteredTransactions.filter { $0.transactionDate >= startDate }
+        }
+        
+        if let endDate = endDate {
+            filteredTransactions = filteredTransactions.filter { $0.transactionDate <= endDate }
+        }
+        
+        return filteredTransactions.sorted { $0.transactionDate < $1.transactionDate }
+    }
+    
+    func addTransaction(_ transaction: Transaction) {
+        var transactions = loadTransactions()
+        transactions.append(transaction)
+        saveTransactions(transactions)
+    }
+    
+    func deleteTransactionsForSource(sourceId: UUID) {
+        var transactions = loadTransactions()
+        transactions.removeAll { $0.sourceId == sourceId }
+        saveTransactions(transactions)
+    }
+    
     // MARK: - Clear All Data
     
     func clearAllData() {
         UserDefaults.standard.removeObject(forKey: accountsKey)
         UserDefaults.standard.removeObject(forKey: subscriptionsKey)
         UserDefaults.standard.removeObject(forKey: revenuesKey)
+        UserDefaults.standard.removeObject(forKey: transactionsKey)
     }
     
     // MARK: - Sync to Cloud
@@ -145,6 +192,12 @@ final class LocalStorageService: ObservableObject {
             let localRevenues = loadRevenues()
             for revenue in localRevenues {
                 try await SupabaseService.shared.createRevenue(revenue)
+            }
+            
+            // Sync transactions
+            let localTransactions = loadTransactions()
+            for transaction in localTransactions {
+                try await SupabaseService.shared.createTransaction(transaction)
             }
             
             // Clear local data after successful sync

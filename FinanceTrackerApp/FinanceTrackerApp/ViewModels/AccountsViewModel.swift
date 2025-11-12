@@ -38,6 +38,9 @@ final class AccountsViewModel: ObservableObject {
                     accounts = fetchedAccounts
                     errorMessage = nil
                     print("✅ [AccountsViewModel] Loaded \(accounts.count) accounts from Supabase")
+                    
+                    // Process pending transactions to update balances
+                    await processTransactionsForAllAccounts()
                 } catch is CancellationError {
                     print("⚠️ [AccountsViewModel] Load task was cancelled")
                     // Don't update UI or show error for cancelled tasks
@@ -61,10 +64,46 @@ final class AccountsViewModel: ObservableObject {
                 print("📂 [AccountsViewModel] Loading from local storage (not authenticated)")
                 accounts = LocalStorageService.shared.loadAccounts()
                 errorMessage = nil
+                
+                // Process pending transactions for local accounts
+                await processTransactionsForAllAccounts()
             }
         }
         
         await loadTask?.value
+    }
+    
+    /// Processes all pending transactions and updates account balances
+    private func processTransactionsForAllAccounts() async {
+        do {
+            // Fetch subscriptions and revenues
+            let subscriptions: [SubscriptionItem]
+            let revenues: [RevenueItem]
+            
+            if authViewModel.isAuthenticated {
+                subscriptions = try await SupabaseService.shared.fetchSubscriptions()
+                revenues = try await SupabaseService.shared.fetchRevenues()
+            } else {
+                subscriptions = LocalStorageService.shared.loadSubscriptions()
+                revenues = LocalStorageService.shared.loadRevenues()
+            }
+            
+            // Process transactions and get updated accounts
+            let updatedAccounts = try await TransactionProcessingService.shared.processAllPendingTransactions(
+                accounts: accounts,
+                subscriptions: subscriptions,
+                revenues: revenues,
+                isAuthenticated: authViewModel.isAuthenticated
+            )
+            
+            // Update the accounts array
+            accounts = updatedAccounts
+            
+            print("✅ [AccountsViewModel] Processed transactions for all accounts")
+        } catch {
+            print("❌ [AccountsViewModel] Error processing transactions: \(error)")
+            // Don't show error to user - keep existing balances
+        }
     }
 
     func createAccount(name: String, amount: Double, currency: String) async -> Bool {
@@ -84,6 +123,7 @@ final class AccountsViewModel: ObservableObject {
                     name: name,
                     amount: amount,
                     currency: currency,
+                    lastProcessedDate: Date(),
                     createdAt: nil,
                     updatedAt: nil
                 )
@@ -96,6 +136,7 @@ final class AccountsViewModel: ObservableObject {
                     name: name,
                     amount: amount,
                     currency: currency,
+                    lastProcessedDate: Date(),
                     createdAt: nil,
                     updatedAt: nil
                 )

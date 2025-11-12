@@ -106,19 +106,119 @@ final class DashboardViewModel: ObservableObject {
     }
     
     func calculateBalanceForSelectedDate() async {
-        let calendar = Calendar.current
-        let endDate = calendar.date(byAdding: .year, value: 1, to: selectedDate) ?? selectedDate
-        let transactions = FinancialCalculations.generateProjectedTransactions(
-            subscriptions: subscriptions,
-            revenues: revenues,
-            endDate: endDate,
-            currentDate: Date()
-        )
-        projectedBalanceForSelectedDate = await FinancialCalculations.calculateTotalBalance(
-            accounts: accounts,
-            transactions: transactions,
-            upToDate: selectedDate
-        )
+        let now = Date()
+        
+        if selectedDate <= now {
+            // Calculate historical balance using actual transactions from database
+            await calculateHistoricalBalance(upToDate: selectedDate)
+        } else {
+            // Calculate future projections using projected transactions
+            let calendar = Calendar.current
+            let endDate = calendar.date(byAdding: .year, value: 1, to: selectedDate) ?? selectedDate
+            let transactions = FinancialCalculations.generateProjectedTransactions(
+                subscriptions: subscriptions,
+                revenues: revenues,
+                endDate: endDate,
+                currentDate: Date()
+            )
+            projectedBalanceForSelectedDate = await FinancialCalculations.calculateTotalBalance(
+                accounts: accounts,
+                transactions: transactions,
+                upToDate: selectedDate
+            )
+        }
+    }
+    
+    /// Calculates historical balance using actual transaction records
+    private func calculateHistoricalBalance(upToDate: Date) async {
+        do {
+            var totalBalance = 0.0
+            
+            // For each account, calculate its balance at the historical date
+            for account in accounts {
+                // Fetch all transactions for this account up to the selected date
+                let transactions: [Transaction]
+                
+                if authViewModel.isAuthenticated {
+                    transactions = try await SupabaseService.shared.fetchTransactions(
+                        accountId: account.id,
+                        startDate: nil,
+                        endDate: upToDate
+                    )
+                } else {
+                    transactions = LocalStorageService.shared.loadTransactions(
+                        accountId: account.id,
+                        startDate: nil,
+                        endDate: upToDate
+                    )
+                }
+                
+                // Calculate account balance at the historical date
+                let accountBalance = await calculateAccountBalanceAtDate(
+                    account: account,
+                    transactions: transactions,
+                    targetDate: upToDate
+                )
+                
+                totalBalance += accountBalance
+            }
+            
+            projectedBalanceForSelectedDate = totalBalance
+        } catch {
+            print("❌ [DashboardViewModel] Error calculating historical balance: \(error)")
+            // Fallback to projected calculation if there's an error
+            let calendar = Calendar.current
+            let endDate = calendar.date(byAdding: .year, value: 1, to: selectedDate) ?? selectedDate
+            let transactions = FinancialCalculations.generateProjectedTransactions(
+                subscriptions: subscriptions,
+                revenues: revenues,
+                endDate: endDate,
+                currentDate: Date()
+            )
+            projectedBalanceForSelectedDate = await FinancialCalculations.calculateTotalBalance(
+                accounts: accounts,
+                transactions: transactions,
+                upToDate: selectedDate
+            )
+        }
+    }
+    
+    /// Calculates an account's balance at a specific date using actual transactions
+    private func calculateAccountBalanceAtDate(
+        account: FinanceItem,
+        transactions: [Transaction],
+        targetDate: Date
+    ) async -> Double {
+        let now = Date()
+        
+        // Start with the account's current balance
+        var balance = account.amount
+        
+        // Convert current balance to USD if needed
+        if account.currency != "USD" {
+            let (convertedUSD, _) = await CurrencyService.shared.convertToUSDWithFallback(
+                amount: balance,
+                fromCurrency: account.currency
+            )
+            balance = convertedUSD
+        }
+        
+        // If we're looking at a past date, we need to subtract transactions that happened
+        // between the target date and now
+        if targetDate < now {
+            let futureTransactions = transactions.filter { $0.transactionDate > targetDate }
+            
+            for transaction in futureTransactions {
+                // Convert transaction amount to USD if needed
+                let (convertedUSD, _) = await CurrencyService.shared.convertToUSDWithFallback(
+                    amount: transaction.amount,
+                    fromCurrency: transaction.currency
+                )
+                balance -= convertedUSD
+            }
+        }
+        
+        return balance
     }
     
     func setSelectedDate(_ date: Date) async {

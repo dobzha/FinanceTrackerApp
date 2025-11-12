@@ -4,7 +4,7 @@ import UIKit
 
 enum OperationType: String, Codable { case create, update, delete }
 
-enum QueueTable: String, Codable { case finance = "finance_items", subscription = "subscription_items", revenue = "revenue_items" }
+enum QueueTable: String, Codable { case finance = "finance_items", subscription = "subscription_items", revenue = "revenue_items", transaction = "transactions" }
 
 struct QueuedOperation: Codable, Identifiable {
     let id: UUID
@@ -57,6 +57,10 @@ final class OfflineQueueService: ObservableObject {
     func enqueueDeleteRevenue(_ item: RevenueItem) { let minimal = ["id": item.id.uuidString]; enqueue(table: .revenue, encodable: minimal, type: .delete) }
 
     func enqueueDeleteRevenue(id: UUID) { let minimal = ["id": id.uuidString]; enqueue(table: .revenue, encodable: minimal, type: .delete) }
+
+    func enqueueCreate(_ item: Transaction) { enqueue(table: .transaction, model: item, type: .create) }
+    
+    func enqueueDeleteTransactionsForSource(sourceId: UUID) { let minimal = ["source_id": sourceId.uuidString]; enqueue(table: .transaction, encodable: minimal, type: .delete) }
 
     private func enqueue<T: Encodable>(table: QueueTable, model: T, type: OperationType) {
         enqueue(table: table, encodable: model, type: type)
@@ -159,6 +163,16 @@ final class OfflineQueueService: ObservableObject {
                 } else {
                     let item = try JSONDecoder().decode(AnyDecodable<RevenueItem>.self, from: op.payload).value
                     if op.type == .create { try await SupabaseService.shared.createRevenue(item) } else { try await SupabaseService.shared.updateRevenue(item) }
+                }
+            case .transaction:
+                if op.type == .delete {
+                    let dict = try JSONSerialization.jsonObject(with: op.payload) as? [String: Any]
+                    if let sourceIdStr = dict?["source_id"] as? String, let sourceId = UUID(uuidString: sourceIdStr) {
+                        try await SupabaseService.shared.deleteTransactionsForSource(sourceId: sourceId)
+                    }
+                } else {
+                    let item = try JSONDecoder().decode(AnyDecodable<Transaction>.self, from: op.payload).value
+                    if op.type == .create { try await SupabaseService.shared.createTransaction(item) }
                 }
             }
             return true

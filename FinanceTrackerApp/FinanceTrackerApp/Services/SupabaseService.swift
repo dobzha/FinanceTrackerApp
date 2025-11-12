@@ -316,6 +316,77 @@ final class SupabaseService {
         }
     }
 
+    // MARK: - Transactions
+
+    func fetchTransactions(accountId: UUID? = nil, startDate: Date? = nil, endDate: Date? = nil) async throws -> [Transaction] {
+        print("🔍 [SupabaseService] Fetching transactions...")
+        
+        guard let user = try? await client.auth.session.user else {
+            print("❌ [SupabaseService] User not authenticated")
+            throw NSError(domain: "SupabaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not signed in. Please sign in to view your data."])
+        }
+        
+        print("✅ [SupabaseService] User authenticated: \(user.id.uuidString)")
+        
+        do {
+            var query = client
+                .from("transactions")
+                .select()
+                .eq("user_id", value: user.id.uuidString)
+            
+            // Filter by account if specified
+            if let accountId = accountId {
+                query = query.eq("account_id", value: accountId.uuidString)
+            }
+            
+            // Filter by date range if specified
+            if let startDate = startDate {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                let startDateString = formatter.string(from: startDate)
+                query = query.gte("transaction_date", value: startDateString)
+            }
+            
+            if let endDate = endDate {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                let endDateString = formatter.string(from: endDate)
+                query = query.lte("transaction_date", value: endDateString)
+            }
+            
+            let response = try await query
+                .order("transaction_date", ascending: true)
+                .execute()
+            
+            let result = try customDecoder.decode([Transaction].self, from: response.data)
+            
+            print("✅ [SupabaseService] Fetched \(result.count) transactions successfully")
+            return result
+        } catch let decodingError as DecodingError {
+            print("❌ [SupabaseService] Date decoding error for transactions: \(decodingError)")
+            throw NSError(domain: "SupabaseService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Date format error. Please check transaction dates."])
+        } catch {
+            print("❌ [SupabaseService] Error fetching transactions: \(error)")
+            throw error
+        }
+    }
+
+    func createTransaction(_ item: Transaction) async throws {
+        if isOnline {
+            _ = try await client.from("transactions").insert(item).execute()
+        } else {
+            OfflineQueueService.shared.enqueueCreate(item)
+        }
+    }
+
+    func deleteTransactionsForSource(sourceId: UUID) async throws {
+        if isOnline {
+            _ = try await client.from("transactions").delete().eq("source_id", value: sourceId.uuidString).execute()
+        } else {
+            OfflineQueueService.shared.enqueueDeleteTransactionsForSource(sourceId: sourceId)
+        }
+    }
+
     func handleOpenURL(_ url: URL) async {
         do {
             _ = try await client.auth.session(from: url)
