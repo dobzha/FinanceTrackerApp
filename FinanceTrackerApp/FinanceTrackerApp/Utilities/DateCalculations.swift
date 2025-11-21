@@ -2,6 +2,15 @@
 import Foundation
 
 struct DateCalculations {
+    /// Normalizes a date to UTC midnight to avoid timezone shifts when encoding/decoding
+    /// This ensures that a date selected as "Nov 22" stays "Nov 22" regardless of timezone
+    static func normalizeToUTCMidnight(_ date: Date) -> Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        var utcCalendar = Calendar.current
+        utcCalendar.timeZone = TimeZone(secondsFromGMT: 0) ?? TimeZone.current
+        return utcCalendar.date(from: components) ?? date
+    }
     static func getNextMonthlyPayment(repetitionDate: Date, currentDate: Date = Date()) -> Date {
         let calendar = Calendar.current
         let currentMonth = calendar.component(.month, from: currentDate)

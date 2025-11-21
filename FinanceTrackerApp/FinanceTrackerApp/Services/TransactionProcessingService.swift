@@ -31,6 +31,21 @@ final class TransactionProcessingService {
         return updatedAccounts
     }
     
+    /// Processes transactions for a specific account immediately (used after creating/updating subscriptions/revenues)
+    func processTransactionsForAccount(
+        account: FinanceItem,
+        subscriptions: [SubscriptionItem],
+        revenues: [RevenueItem],
+        isAuthenticated: Bool
+    ) async throws -> FinanceItem {
+        return try await processAccountTransactions(
+            account: account,
+            subscriptions: subscriptions,
+            revenues: revenues,
+            isAuthenticated: isAuthenticated
+        )
+    }
+    
     /// Processes pending transactions for a single account
     private func processAccountTransactions(
         account: FinanceItem,
@@ -39,33 +54,75 @@ final class TransactionProcessingService {
         isAuthenticated: Bool
     ) async throws -> FinanceItem {
         let now = Date()
-        let startDate = account.lastProcessedDate ?? account.createdAt ?? now
+        let calendar = Calendar.current
+        let nowStartOfDay = calendar.startOfDay(for: now)
         
-        // Only process if there's time that has passed since last processing
-        guard startDate < now else {
+        // Determine the start date for processing
+        // If lastProcessedDate is today or earlier, we need to process from there to today
+        // If lastProcessedDate is in the future, don't process
+        let lastProcessed = account.lastProcessedDate ?? account.createdAt ?? now
+        let lastProcessedStartOfDay = calendar.startOfDay(for: lastProcessed)
+        
+        // Don't process if lastProcessedDate is in the future
+        guard lastProcessedStartOfDay <= nowStartOfDay else {
             return account
         }
+        
+        // Always process from lastProcessedDate (or start of today if processing same day) to end of today
+        // This ensures we catch any new subscriptions/revenues added today
+        let startDateStartOfDay = lastProcessedStartOfDay
         
         // Filter subscriptions and revenues linked to this account
         let accountSubscriptions = subscriptions.filter { $0.accountId == account.id }
         let accountRevenues = revenues.filter { $0.accountId == account.id }
         
+        // Use end of today to ensure today's transactions are included
+        // We'll use start of day for comparison in calculateOccurrences, so endDate should be start of tomorrow
+        // to include all of today
+        guard let tomorrowStartOfDay = calendar.date(byAdding: .day, value: 1, to: nowStartOfDay) else {
+            return account
+        }
+        let endDate = tomorrowStartOfDay
+        
+        // Get existing transactions to avoid duplicates
+        // Check for existing transactions from the start date to end of today
+        let existingTransactions: Set<String>
+        do {
+            let existing = try await getAccountTransactions(
+                accountId: account.id,
+                startDate: startDateStartOfDay,
+                endDate: endDate,
+                isAuthenticated: isAuthenticated
+            )
+            // Create a set of unique identifiers: "sourceId:transactionDateStartOfDay"
+            existingTransactions = Set(existing.map { transaction in
+                let dateStartOfDay = calendar.startOfDay(for: transaction.transactionDate)
+                return "\(transaction.sourceId):\(dateStartOfDay.timeIntervalSince1970)"
+            })
+            print("📊 [TransactionProcessingService] Found \(existingTransactions.count) existing transactions for account '\(account.name)' from \(startDateStartOfDay) to \(endDate)")
+        } catch {
+            print("⚠️ [TransactionProcessingService] Error fetching existing transactions: \(error)")
+            existingTransactions = Set()
+        }
+        
         // Generate transactions for subscriptions (negative amounts)
         let subscriptionTransactions = generateTransactions(
             for: accountSubscriptions,
             account: account,
-            startDate: startDate,
-            endDate: now,
-            type: .subscription
+            startDate: startDateStartOfDay,
+            endDate: endDate,
+            type: .subscription,
+            existingTransactions: existingTransactions
         )
         
         // Generate transactions for revenues (positive amounts)
         let revenueTransactions = generateTransactions(
             for: accountRevenues,
             account: account,
-            startDate: startDate,
-            endDate: now,
-            type: .revenue
+            startDate: startDateStartOfDay,
+            endDate: endDate,
+            type: .revenue,
+            existingTransactions: existingTransactions
         )
         
         let allTransactions = subscriptionTransactions + revenueTransactions
@@ -86,6 +143,8 @@ final class TransactionProcessingService {
         let totalChange = allTransactions.reduce(0.0) { result, transaction in
             return result + transaction.amount
         }
+        
+        print("💰 [TransactionProcessingService] Processing \(allTransactions.count) transactions for account '\(account.name)'. Balance change: \(totalChange) (from \(account.amount) to \(account.amount + totalChange))")
         
         // Update account balance
         var updatedAccount = account
@@ -120,9 +179,11 @@ final class TransactionProcessingService {
         account: FinanceItem,
         startDate: Date,
         endDate: Date,
-        type: TransactionType
+        type: TransactionType,
+        existingTransactions: Set<String>
     ) -> [Transaction] {
         var transactions: [Transaction] = []
+        let calendar = Calendar.current
         
         for subscription in subscriptions {
             let occurrences = calculateOccurrences(
@@ -133,13 +194,21 @@ final class TransactionProcessingService {
             )
             
             for occurrence in occurrences {
+                let occurrenceStartOfDay = calendar.startOfDay(for: occurrence)
+                let transactionKey = "\(subscription.id):\(occurrenceStartOfDay.timeIntervalSince1970)"
+                
+                // Skip if transaction already exists
+                if existingTransactions.contains(transactionKey) {
+                    continue
+                }
+                
                 let transaction = Transaction(
                     id: UUID(),
                     userId: account.userId,
                     accountId: account.id,
                     amount: -subscription.amount, // Negative for subscriptions
                     currency: subscription.currency,
-                    transactionDate: occurrence,
+                    transactionDate: occurrenceStartOfDay, // Use start of day for consistency
                     transactionType: type,
                     sourceId: subscription.id,
                     sourceName: subscription.name,
@@ -158,30 +227,42 @@ final class TransactionProcessingService {
         account: FinanceItem,
         startDate: Date,
         endDate: Date,
-        type: TransactionType
+        type: TransactionType,
+        existingTransactions: Set<String>
     ) -> [Transaction] {
         var transactions: [Transaction] = []
+        let calendar = Calendar.current
+        let startStartOfDay = calendar.startOfDay(for: startDate)
+        let endStartOfDay = calendar.startOfDay(for: endDate)
         
         for revenue in revenues {
             // Handle one-time revenues separately
             if revenue.period == .once {
                 // Check if this one-time revenue should be applied
-                if let repetitionDate = revenue.repetitionDate,
-                   repetitionDate >= startDate && repetitionDate <= endDate {
-                    let transaction = Transaction(
-                        id: UUID(),
-                        userId: account.userId,
-                        accountId: account.id,
-                        amount: revenue.amount, // Positive for revenues
-                        currency: revenue.currency,
-                        transactionDate: repetitionDate,
-                        transactionType: type,
-                        sourceId: revenue.id,
-                        sourceName: revenue.name,
-                        description: "Revenue (one-time): \(revenue.name)",
-                        createdAt: Date()
-                    )
-                    transactions.append(transaction)
+                if let repetitionDate = revenue.repetitionDate {
+                    let repStartOfDay = calendar.startOfDay(for: repetitionDate)
+                    // Include if the date is within the range (inclusive)
+                    if repStartOfDay >= startStartOfDay && repStartOfDay <= endStartOfDay {
+                        let transactionKey = "\(revenue.id):\(repStartOfDay.timeIntervalSince1970)"
+                        
+                        // Skip if transaction already exists
+                        if !existingTransactions.contains(transactionKey) {
+                            let transaction = Transaction(
+                                id: UUID(),
+                                userId: account.userId,
+                                accountId: account.id,
+                                amount: revenue.amount, // Positive for revenues
+                                currency: revenue.currency,
+                                transactionDate: repStartOfDay, // Use start of day for consistency
+                                transactionType: type,
+                                sourceId: revenue.id,
+                                sourceName: revenue.name,
+                                description: "Revenue (one-time): \(revenue.name)",
+                                createdAt: Date()
+                            )
+                            transactions.append(transaction)
+                        }
+                    }
                 }
                 continue
             }
@@ -199,13 +280,21 @@ final class TransactionProcessingService {
             )
             
             for occurrence in occurrences {
+                let occurrenceStartOfDay = calendar.startOfDay(for: occurrence)
+                let transactionKey = "\(revenue.id):\(occurrenceStartOfDay.timeIntervalSince1970)"
+                
+                // Skip if transaction already exists
+                if existingTransactions.contains(transactionKey) {
+                    continue
+                }
+                
                 let transaction = Transaction(
                     id: UUID(),
                     userId: account.userId,
                     accountId: account.id,
                     amount: revenue.amount, // Positive for revenues
                     currency: revenue.currency,
-                    transactionDate: occurrence,
+                    transactionDate: occurrenceStartOfDay, // Use start of day for consistency
                     transactionType: type,
                     sourceId: revenue.id,
                     sourceName: revenue.name,
@@ -231,24 +320,33 @@ final class TransactionProcessingService {
         var occurrences: [Date] = []
         let calendar = Calendar.current
         
-        // Start from the repetition date
-        var currentDate = repetitionDate
+        // Normalize dates to start of day for comparison
+        let repStartOfDay = calendar.startOfDay(for: repetitionDate)
+        let startStartOfDay = calendar.startOfDay(for: startDate)
+        let endStartOfDay = calendar.startOfDay(for: endDate)
         
-        // Find the first occurrence after or equal to startDate
-        while currentDate < startDate {
-            guard let nextDate = addPeriod(to: currentDate, period: period) else {
-                break
+        // Start from the repetition date
+        var currentDate = repStartOfDay
+        
+        // If repetition date is before start date, find the first occurrence >= startDate
+        if currentDate < startStartOfDay {
+            // Find the first occurrence after or equal to startDate
+            while currentDate < startStartOfDay {
+                guard let nextDate = addPeriod(to: currentDate, period: period) else {
+                    break
+                }
+                currentDate = calendar.startOfDay(for: nextDate)
             }
-            currentDate = nextDate
         }
         
-        // Collect all occurrences until endDate
-        while currentDate <= endDate {
+        // Collect all occurrences until endDate (inclusive)
+        // Use start of day comparison to ensure same-day transactions are included
+        while currentDate <= endStartOfDay {
             occurrences.append(currentDate)
             guard let nextDate = addPeriod(to: currentDate, period: period) else {
                 break
             }
-            currentDate = nextDate
+            currentDate = calendar.startOfDay(for: nextDate)
         }
         
         return occurrences

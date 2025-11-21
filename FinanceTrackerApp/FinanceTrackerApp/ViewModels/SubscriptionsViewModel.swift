@@ -77,6 +77,9 @@ final class SubscriptionsViewModel: ObservableObject {
 
     func create(name: String, amount: Double, currency: String, period: SubscriptionPeriod, repetitionDate: Date, accountId: UUID?) async -> Bool {
         do {
+            // Normalize date to UTC midnight to avoid timezone shifts when encoding
+            let normalizedDate = DateCalculations.normalizeToUTCMidnight(repetitionDate)
+            
             let item: SubscriptionItem
             
             if authViewModel.isAuthenticated {
@@ -86,12 +89,63 @@ final class SubscriptionsViewModel: ObservableObject {
                     return false
                 }
                 
-                item = SubscriptionItem(id: UUID(), userId: currentUser.id, name: name, amount: amount, currency: currency, period: period, repetitionDate: repetitionDate, accountId: accountId, createdAt: nil, updatedAt: nil)
+                item = SubscriptionItem(id: UUID(), userId: currentUser.id, name: name, amount: amount, currency: currency, period: period, repetitionDate: normalizedDate, accountId: accountId, createdAt: nil, updatedAt: nil)
                 try await SupabaseService.shared.createSubscription(item)
             } else {
                 // Create subscription locally for unauthenticated users
-                item = SubscriptionItem(id: UUID(), userId: UUID(), name: name, amount: amount, currency: currency, period: period, repetitionDate: repetitionDate, accountId: accountId, createdAt: nil, updatedAt: nil)
+                item = SubscriptionItem(id: UUID(), userId: UUID(), name: name, amount: amount, currency: currency, period: period, repetitionDate: normalizedDate, accountId: accountId, createdAt: nil, updatedAt: nil)
                 LocalStorageService.shared.addSubscription(item)
+            }
+            
+            // If subscription is linked to an account, process transactions immediately
+            if let accountId = accountId {
+                do {
+                    // Fetch the latest account data
+                    let account: FinanceItem
+                    if authViewModel.isAuthenticated {
+                        let allAccounts = try await SupabaseService.shared.fetchAccounts()
+                        guard let fetchedAccount = allAccounts.first(where: { $0.id == accountId }) else {
+                            throw NSError(domain: "SubscriptionsViewModel", code: 404, userInfo: [NSLocalizedDescriptionKey: "Account not found"])
+                        }
+                        account = fetchedAccount
+                    } else {
+                        let allAccounts = LocalStorageService.shared.loadAccounts()
+                        guard let fetchedAccount = allAccounts.first(where: { $0.id == accountId }) else {
+                            throw NSError(domain: "SubscriptionsViewModel", code: 404, userInfo: [NSLocalizedDescriptionKey: "Account not found"])
+                        }
+                        account = fetchedAccount
+                    }
+                    
+                    let subscriptions: [SubscriptionItem]
+                    let revenues: [RevenueItem]
+                    
+                    if authViewModel.isAuthenticated {
+                        subscriptions = try await SupabaseService.shared.fetchSubscriptions()
+                        revenues = try await SupabaseService.shared.fetchRevenues()
+                    } else {
+                        subscriptions = LocalStorageService.shared.loadSubscriptions()
+                        revenues = LocalStorageService.shared.loadRevenues()
+                    }
+                    
+                    // Process transactions for the affected account
+                    let updatedAccount = try await TransactionProcessingService.shared.processTransactionsForAccount(
+                        account: account,
+                        subscriptions: subscriptions,
+                        revenues: revenues,
+                        isAuthenticated: authViewModel.isAuthenticated
+                    )
+                    
+                    // Update the account in the accounts array if it exists
+                    if let index = accounts.firstIndex(where: { $0.id == accountId }) {
+                        accounts[index] = updatedAccount
+                    }
+                    
+                    // Notify that accounts have been updated
+                    NotificationCenter.default.post(name: .init("AccountUpdated"), object: nil)
+                } catch {
+                    print("⚠️ [SubscriptionsViewModel] Error processing transactions: \(error)")
+                    // Continue anyway - the subscription was created successfully
+                }
             }
             
             await load()
@@ -104,11 +158,72 @@ final class SubscriptionsViewModel: ObservableObject {
 
     func update(_ item: SubscriptionItem) async -> Bool {
         do {
+            // Store the old account ID before update
+            let oldAccountId = subscriptions.first(where: { $0.id == item.id })?.accountId
+            
+            // Normalize date to UTC midnight to avoid timezone shifts when encoding
+            let normalizedDate = DateCalculations.normalizeToUTCMidnight(item.repetitionDate)
+            var normalizedItem = item
+            normalizedItem.repetitionDate = normalizedDate
+            
             if authViewModel.isAuthenticated {
-                try await SupabaseService.shared.updateSubscription(item)
+                try await SupabaseService.shared.updateSubscription(normalizedItem)
             } else {
-                LocalStorageService.shared.updateSubscription(item)
+                LocalStorageService.shared.updateSubscription(normalizedItem)
             }
+            
+            // If subscription is linked to an account, process transactions immediately
+            let accountId = normalizedItem.accountId ?? oldAccountId
+            if let accountId = accountId {
+                do {
+                    // Fetch the latest account data
+                    let account: FinanceItem
+                    if authViewModel.isAuthenticated {
+                        let allAccounts = try await SupabaseService.shared.fetchAccounts()
+                        guard let fetchedAccount = allAccounts.first(where: { $0.id == accountId }) else {
+                            throw NSError(domain: "SubscriptionsViewModel", code: 404, userInfo: [NSLocalizedDescriptionKey: "Account not found"])
+                        }
+                        account = fetchedAccount
+                    } else {
+                        let allAccounts = LocalStorageService.shared.loadAccounts()
+                        guard let fetchedAccount = allAccounts.first(where: { $0.id == accountId }) else {
+                            throw NSError(domain: "SubscriptionsViewModel", code: 404, userInfo: [NSLocalizedDescriptionKey: "Account not found"])
+                        }
+                        account = fetchedAccount
+                    }
+                    
+                    let subscriptions: [SubscriptionItem]
+                    let revenues: [RevenueItem]
+                    
+                    if authViewModel.isAuthenticated {
+                        subscriptions = try await SupabaseService.shared.fetchSubscriptions()
+                        revenues = try await SupabaseService.shared.fetchRevenues()
+                    } else {
+                        subscriptions = LocalStorageService.shared.loadSubscriptions()
+                        revenues = LocalStorageService.shared.loadRevenues()
+                    }
+                    
+                    // Process transactions for the affected account
+                    let updatedAccount = try await TransactionProcessingService.shared.processTransactionsForAccount(
+                        account: account,
+                        subscriptions: subscriptions,
+                        revenues: revenues,
+                        isAuthenticated: authViewModel.isAuthenticated
+                    )
+                    
+                    // Update the account in the accounts array if it exists
+                    if let index = accounts.firstIndex(where: { $0.id == accountId }) {
+                        accounts[index] = updatedAccount
+                    }
+                    
+                    // Notify that accounts have been updated
+                    NotificationCenter.default.post(name: .init("AccountUpdated"), object: nil)
+                } catch {
+                    print("⚠️ [SubscriptionsViewModel] Error processing transactions: \(error)")
+                    // Continue anyway - the subscription was updated successfully
+                }
+            }
+            
             await load()
             return true
         } catch {

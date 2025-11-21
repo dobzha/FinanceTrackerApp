@@ -13,17 +13,28 @@ struct TransactionModel {
 struct FinancialCalculations {
     static func generateProjectedTransactions(subscriptions: [SubscriptionItem], revenues: [RevenueItem], endDate: Date, currentDate: Date = Date()) -> [TransactionModel] {
         var transactions: [TransactionModel] = []
+        let calendar = Calendar.current
+        let currentStartOfDay = calendar.startOfDay(for: currentDate)
+        
         for s in subscriptions {
             let occ = DateCalculations.generateOccurrences(startDate: s.repetitionDate, period: s.period.rawValue, endDate: endDate)
-            for d in occ where d >= currentDate {
-                transactions.append(TransactionModel(id: UUID(), date: d, amount: -s.amount, currency: s.currency, accountId: s.accountId, type: "subscription"))
+            for d in occ {
+                let dStartOfDay = calendar.startOfDay(for: d)
+                // Include today's date in transactions
+                if dStartOfDay >= currentStartOfDay {
+                    transactions.append(TransactionModel(id: UUID(), date: d, amount: -s.amount, currency: s.currency, accountId: s.accountId, type: "subscription"))
+                }
             }
         }
         for r in revenues {
             if r.period == .once, let rep = r.repetitionDate, DateCalculations.shouldHideOnceRevenue(repetitionDate: rep) { continue }
             let occ = DateCalculations.generateOccurrences(startDate: r.repetitionDate ?? Date(), period: r.period.rawValue, endDate: endDate)
-            for d in occ where d >= currentDate {
-                transactions.append(TransactionModel(id: UUID(), date: d, amount: r.amount, currency: r.currency, accountId: r.accountId, type: "revenue"))
+            for d in occ {
+                let dStartOfDay = calendar.startOfDay(for: d)
+                // Include today's date in transactions
+                if dStartOfDay >= currentStartOfDay {
+                    transactions.append(TransactionModel(id: UUID(), date: d, amount: r.amount, currency: r.currency, accountId: r.accountId, type: "revenue"))
+                }
             }
         }
         return transactions.sorted { $0.date < $1.date }
