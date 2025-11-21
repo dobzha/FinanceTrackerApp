@@ -6,70 +6,43 @@ struct AccountsScreen: View {
     @EnvironmentObject var auth: AuthViewModel
     @StateObject private var viewModel = AccountsViewModel()
 
-    @State private var showForm = false
     @State private var editingItem: FinanceItem? = nil
+    @State private var showCreateForm = false
     @State private var showDeleteAlert = false
     @State private var deleteTarget: FinanceItem? = nil
     @State private var linkedText: String = ""
     @State private var totalBalanceUSD: Double = 0.0
 
     var body: some View {
-        NavigationView {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.accounts.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "wallet.pass").font(.system(size: 56)).foregroundColor(.secondary)
-                        Text("No Accounts Yet").font(.title2).fontWeight(.semibold)
-                        Text("Start by adding your financial accounts.").font(.subheadline).foregroundColor(.secondary)
-                        Button("Add Account") { showForm = true }.buttonStyle(.borderedProminent)
-                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    List {
-                        ForEach(viewModel.accounts, id: \.id) { item in
-                            AccountRowView(item: item)
-                                .swipeActions(edge: .leading) {
-                                    Button { editingItem = item; showForm = true } label: { Label("Edit", systemImage: "pencil") }
-                                        .tint(.blue)
-                                }
-                                .swipeActions(edge: .trailing) {
-                                    Button(role: .destructive) { confirmDelete(item) } label: { Label("Delete", systemImage: "trash") }
-                                }
+        NavigationStack {
+            contentView
+                .navigationTitle("Accounts")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button { showCreateForm = true } label: { Image(systemName: "plus") }
+                    }
+                }
+                .safeAreaInset(edge: .top) {
+                    if !viewModel.accounts.isEmpty {
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("Total Balance")
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text(CurrencyService.shared.formatAmountInUSD(totalBalanceUSD))
+                                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                                    .foregroundColor(.primary)
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemBackground))
+                            
+                            Divider()
                         }
                     }
-                    .refreshable { 
-                        await viewModel.loadAccounts()
-                        await calculateTotalBalance()
-                    }
                 }
-            }
-            .navigationTitle("Accounts")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button { editingItem = nil; showForm = true } label: { Image(systemName: "plus") }
-                }
-            }
-            .safeAreaInset(edge: .top) {
-                if !viewModel.accounts.isEmpty {
-                    VStack(spacing: 8) {
-                        HStack {
-                            Text("Total Balance")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text(CurrencyService.shared.formatAmountInUSD(totalBalanceUSD))
-                                .font(.system(size: 24, weight: .bold, design: .rounded))
-                                .foregroundColor(.primary)
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .background(Color(.systemBackground))
-                        
-                        Divider()
-                    }
-                }
-            }
         }
         .task { 
             await viewModel.loadAccounts()
@@ -101,24 +74,35 @@ struct AccountsScreen: View {
         } message: { errorMsg in
             Text(errorMsg)
         }
-        .sheet(isPresented: $showForm) {
+        .sheet(item: $editingItem) { item in
             NavigationStack {
                 AccountFormView(
-                    mode: editingItem == nil ? .create : .edit,
-                    existing: editingItem,
+                    mode: .edit,
+                    existing: item,
                     onSave: { name, amount, currency in
-                        let ok: Bool
-                        if var editing = editingItem {
-                            editing.name = name
-                            editing.amount = amount
-                            editing.currency = currency
-                            ok = await viewModel.updateAccount(editing)
-                            if ok { toast.show("Account updated") }
-                        } else {
-                            ok = await viewModel.createAccount(name: name, amount: amount, currency: currency)
-                            if ok { toast.show("Account created") }
+                        var updated = item
+                        updated.name = name
+                        updated.amount = amount
+                        updated.currency = currency
+                        let ok = await viewModel.updateAccount(updated)
+                        if ok { 
+                            toast.show("Account updated")
+                            await calculateTotalBalance()
                         }
-                        if ok {
+                        return ok
+                    }
+                )
+            }
+        }
+        .sheet(isPresented: $showCreateForm) {
+            NavigationStack {
+                AccountFormView(
+                    mode: .create,
+                    existing: nil,
+                    onSave: { name, amount, currency in
+                        let ok = await viewModel.createAccount(name: name, amount: amount, currency: currency)
+                        if ok { 
+                            toast.show("Account created")
                             await calculateTotalBalance()
                         }
                         return ok
@@ -157,6 +141,40 @@ struct AccountsScreen: View {
         let total = await FinancialCalculations.calculateCurrentAccountBalance(accounts: viewModel.accounts)
         await MainActor.run {
             totalBalanceUSD = total
+        }
+    }
+    
+    @ViewBuilder
+    private var contentView: some View {
+        if viewModel.isLoading {
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if viewModel.accounts.isEmpty {
+            VStack(spacing: 16) {
+                Image(systemName: "wallet.pass").font(.system(size: 56)).foregroundColor(.secondary)
+                Text("No Accounts Yet").font(.title2).fontWeight(.semibold)
+                Text("Start by adding your financial accounts.").font(.subheadline).foregroundColor(.secondary)
+                Button("Add Account") { showCreateForm = true }.buttonStyle(.borderedProminent)
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            List {
+                ForEach(viewModel.accounts, id: \.id) { item in
+                    AccountRowView(item: item) {
+                        editingItem = item
+                    }
+                    .swipeActions(edge: .leading) {
+                        Button { editingItem = item } label: { Label("Edit", systemImage: "pencil") }
+                            .tint(.blue)
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) { confirmDelete(item) } label: { Label("Delete", systemImage: "trash") }
+                    }
+                }
+            }
+            .id("accountsList")
+            .refreshable { 
+                await viewModel.loadAccounts()
+                await calculateTotalBalance()
+            }
         }
     }
 }

@@ -161,8 +161,25 @@ final class SubscriptionsViewModel: ObservableObject {
             // Store the old account ID before update
             let oldAccountId = subscriptions.first(where: { $0.id == item.id })?.accountId
             
+            // Get the original item to compare changes
+            guard let originalItem = subscriptions.first(where: { $0.id == item.id }) else {
+                errorMessage = "Subscription not found"
+                return false
+            }
+            
+            // Check if amount, period, or currency changed
+            let amountChanged = originalItem.amount != item.amount
+            let periodChanged = originalItem.period != item.period
+            let currencyChanged = originalItem.currency != item.currency
+            
+            // If any of these changed, update repetitionDate to today so new values apply from now
+            var updatedRepetitionDate = item.repetitionDate
+            if amountChanged || periodChanged || currencyChanged {
+                updatedRepetitionDate = Date()
+            }
+            
             // Normalize date to UTC midnight to avoid timezone shifts when encoding
-            let normalizedDate = DateCalculations.normalizeToUTCMidnight(item.repetitionDate)
+            let normalizedDate = DateCalculations.normalizeToUTCMidnight(updatedRepetitionDate)
             var normalizedItem = item
             normalizedItem.repetitionDate = normalizedDate
             

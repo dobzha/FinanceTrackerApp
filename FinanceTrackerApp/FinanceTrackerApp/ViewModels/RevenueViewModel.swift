@@ -161,8 +161,38 @@ final class RevenueViewModel: ObservableObject {
             // Store the old account ID before update
             let oldAccountId = revenues.first(where: { $0.id == item.id })?.accountId
             
+            // Get the original item to compare changes
+            guard let originalItem = revenues.first(where: { $0.id == item.id }) else {
+                errorMessage = "Revenue not found"
+                return false
+            }
+            
+            // Check if amount, period, or currency changed
+            let amountChanged = originalItem.amount != item.amount
+            let periodChanged = originalItem.period != item.period
+            let currencyChanged = originalItem.currency != item.currency
+            
+            // If any of these changed, update repetitionDate to today so new values apply from now
+            // For "once" period, only update if it's not already set or if the date hasn't passed
+            var updatedRepetitionDate = item.repetitionDate
+            if amountChanged || periodChanged || currencyChanged {
+                if item.period == .once {
+                    // For one-time revenue, only update if the date hasn't passed yet
+                    if let existingDate = item.repetitionDate, existingDate > Date() {
+                        // Keep the future date
+                        updatedRepetitionDate = existingDate
+                    } else {
+                        // Set to today if date has passed or is nil
+                        updatedRepetitionDate = Date()
+                    }
+                } else {
+                    // For recurring revenue, always update to today
+                    updatedRepetitionDate = Date()
+                }
+            }
+            
             // Normalize date to UTC midnight to avoid timezone shifts when encoding
-            let normalizedDate = item.repetitionDate != nil ? DateCalculations.normalizeToUTCMidnight(item.repetitionDate!) : nil
+            let normalizedDate = updatedRepetitionDate != nil ? DateCalculations.normalizeToUTCMidnight(updatedRepetitionDate!) : nil
             var normalizedItem = item
             normalizedItem.repetitionDate = normalizedDate
             
